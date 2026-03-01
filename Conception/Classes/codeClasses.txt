@@ -1,0 +1,123 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam monochrome true
+left to right direction
+
+' --- MODULE 1 : AUTHENTIFICATION & RÔLES ---
+abstract class Utilisateur {
+    + String nom
+    + String prenom
+    + String email
+    + String password
+    --
+    + seConnecter()
+    + seDeconnecter()
+}
+
+class Role {
+    + String libelle
+}
+
+class Administrateur extends Utilisateur {
+    --
+    + assignerRoles(Utilisateur, Role)
+}
+
+class CandidatDoctorant extends Utilisateur {
+    + Double totalCreditsCumules
+    --
+    + creerCompte()
+    + consulterTableauDeBord()
+    + deposerManuscrit()
+}
+
+class DirecteurThese extends Utilisateur {
+    --
+    + donnerAvisInscription(DossierInscription)
+    + proposerMembresJury()
+    + signerDocuments()
+}
+
+class PersonnelAdministratif extends Utilisateur {
+    --
+    + definirCampagne(Campagne) 
+    + validerDossier(DossierInscription)
+    + verifierConformite(DemandeSoutenance)
+    + planifierSoutenance(DemandeSoutenance)
+}
+
+' --- MODULE 2 : PROCESSUS D'INSCRIPTION ---
+class Campagne {
+    + Date dateOuverture 
+    + Date dateFermeture 
+}
+
+class DossierInscription {
+    + String sujetThese 
+    + String collaboration 
+    + StatutValidation avisDirecteur
+    + StatutValidation validationAdmin
+    + Date dateSoumission
+    --
+    + notifierDirecteur()
+    + notifierAdministration()
+}
+
+class PieceJustificative {
+    + String libelle (Diplôme, CV, LM) 
+    + String cheminFichier 
+    + String format (PDF, JPG) 
+    --
+    + verifierFormat() 
+}
+
+' --- MODULE 3 : PROCESSUS DE SOUTENANCE ---
+class DemandeSoutenance {
+    + Integer nbPublications
+    + Double creditsFormation
+    + Boolean rapportsFavorables
+    + StatutSoutenance statut
+    --
+    + verifierChecklist()
+    + autoriserSoutenance()
+}
+
+class Jury {
+    + String nom
+    + String role (Rapporteur, Examinateur)
+}
+
+class DocumentSoutenance {
+    + String type
+    + String cheminFichier
+}
+
+note bottom of DocumentSoutenance
+  Types: Demande manuscrite, Rapport thèse,
+  Rapport anti-plagiat, Rapport publications,
+  Attestations formations, Autorisation.
+end note
+
+class Planning {
+    + Date date 
+    + String heure 
+    + String lieu 
+}
+
+' --- RELATIONS ---
+Utilisateur "0..*" -- "1..*" Role : possède 
+
+PersonnelAdministratif "1" -- "0..*" Campagne : gère 
+Campagne "1" -- "0..*" DossierInscription : cadre 
+CandidatDoctorant "1" -- "0..*" DossierInscription : soumet
+DossierInscription "1" *-- "1..*" PieceJustificative : contient 
+DossierInscription "0..*" -- "1" DirecteurThese : notifié pour avis
+DossierInscription "0..*" -- "1" PersonnelAdministratif : "Notification validation"
+CandidatDoctorant "1" -- "0..*" DemandeSoutenance : initie
+DemandeSoutenance "1" *-- "1..*" DocumentSoutenance : exige
+DemandeSoutenance "1" -- "3..*" Jury : proposé par Directeur
+DemandeSoutenance "1" -- "0..1" Planning : communiqué par Admin
+
+@enduml
+
+

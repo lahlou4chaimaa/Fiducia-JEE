@@ -1,0 +1,31 @@
+@startuml
+skinparam monochrome true
+left to right direction
+
+node "Poste Utilisateur" as Client {
+    node "Navigateur Web" {
+        component "Interface UI (HTML/CSS/JS)" as UI
+    }
+}
+
+node "Serveur d'Application (Docker Container)" as DockerApp {
+    node "Java Runtime (JRE)" {
+        artifact "Application.jar (Spring Boot)" as App {
+            component "Spring MVC / Thymeleaf" as Web
+            component "Spring Security" as Auth
+            component "Spring Data JPA" as ORM
+        }
+    }
+}
+
+node "Serveur de Base de Données (Docker Container)" as DockerDB {
+    database "PostgreSQL" as DB
+}
+
+' Connexions
+UI -- Web : "HTTP/HTTPS (Port 8080)"
+Web -- Auth : "Authentification"
+Auth -- ORM
+ORM -- DB : "JDBC / SQL (Port 5432)"
+
+@enduml

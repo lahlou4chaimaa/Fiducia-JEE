@@ -1,0 +1,59 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Candidat / Doctorant" as Doctorant
+actor "Directeur de Thèse" as Directeur
+actor "Personnel Administratif" as Admin
+
+rectangle "Portail de Suivi du Doctorat" {
+  
+  package "Module Authentification" {
+    usecase "Créer un compte" as UC1
+    usecase "S'authentifier" as UC2
+  }
+
+  package "Module Inscription" {
+    usecase "Soumettre dossier (Inscription/Réinscription)" as UC3
+    usecase "Téléverser pièces justificatives" as UC4
+    usecase "Suivre l'état du dossier (Dashboard)" as UC5
+    usecase "Gérer les campagnes d'inscription" as UC6
+    usecase "Valider administrativement le dossier" as UC12
+  }
+
+  package "Module Soutenance" {
+    usecase "Soumettre demande de soutenance" as UC7
+    usecase "Vérifier prérequis (Publications/Formations)" as UC8
+    usecase "Déposer manuscrit" as UC9
+    usecase "Donner avis sur inscription/soutenance" as UC10
+    usecase "Proposer membres du jury" as UC11
+    usecase "Planifier la soutenance (Date/Lieu)" as UC13
+  }
+}
+
+' Relations pour le Doctorant
+Doctorant --> UC1
+Doctorant --> UC2
+Doctorant --> UC3
+Doctorant --> UC4
+Doctorant --> UC5
+Doctorant --> UC7
+Doctorant --> UC9
+
+' Relations pour le Directeur
+Directeur --> UC2
+Directeur --> UC10
+Directeur --> UC11
+
+' Relations pour l'Administration
+Admin --> UC2
+Admin --> UC6
+Admin --> UC12
+Admin --> UC13
+Admin --> UC8
+
+' Extensions et Inclusions
+UC3 ..> UC4 : <<include>>
+UC7 ..> UC8 : <<include>>
+
+@enduml

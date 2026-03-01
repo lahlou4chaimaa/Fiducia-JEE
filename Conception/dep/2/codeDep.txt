@@ -1,0 +1,37 @@
+@startuml
+skinparam monochrome true
+left to right direction
+
+node "Poste Utilisateur (Client)" as Client {
+    node "Navigateur Web" {
+        artifact "React App (Static Bundle)" as ReactApp
+    }
+}
+
+node "Infrastructure Serveur (Docker)" {
+
+    node "Conteneur Web (Nginx/Apache)" as WebServer {
+        component "Frontend Service" as Front
+    }
+
+    node "Conteneur Application (Spring Boot)" as AppServer {
+        artifact "API_Doctorat.jar" as API {
+            component "REST Controllers" as REST
+            component "Spring Security (JWT)" as Auth
+            component "Spring Data MongoDB" as ODM
+        }
+    }
+
+    node "Conteneur Database (MongoDB)" as DBServer {
+        database "MongoDB" as NoSQL
+    }
+}
+
+' Connexions
+ReactApp -- Front : "1. Chargement UI"
+ReactApp -- REST : "2. Appel API (JSON/HTTPS)"
+REST -- Auth : "3. Vérification Token"
+Auth -- ODM
+ODM -- NoSQL : "4. Persistance (Port 27017)"
+
+@enduml

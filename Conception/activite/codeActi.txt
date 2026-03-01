@@ -1,0 +1,71 @@
+@startuml
+skinparam conditionStyle diamond
+skinparam monochrome true
+
+title Flux d'activité : Inscription, Réinscription et Soutenance
+
+start
+
+:Candidat : Création de compte;
+:Candidat : Remplissage formulaire d'inscription;
+:Candidat : Téléversement des pièces (PDF/JPG);
+
+partition "Validation Inscription" {
+    :Directeur : Donner avis;
+    if (Avis Favorable ?) then (Non)
+        :Rejet / Demande de correction;
+        stop
+    else (Oui)
+        :Administration : Vérification conformité;
+        if (Dossier Conforme ?) then (Non)
+            :Demande de complément;
+            detach
+        else (Oui)
+            :Validation finale;
+            :Rôle devient "DOCTORANT";
+        endif
+    endif
+}
+
+repeat
+    :Doctorant : Année de recherche;
+    :Doctorant : Suivi des formations (200h);
+    :Doctorant : Publications (Q1/Q2) & Conférences;
+    
+    if (Prêt pour la soutenance ?) then (Non)
+        :Réinscription annuelle;
+        if (Annee > 3 ans ?) then (Oui)
+            :Demande de dérogation (PED);
+            if (Dérogation accordée ?) then (Non)
+                :Fin de parcours;
+                stop
+            endif
+        endif
+    else (Oui)
+        break
+    endif
+repeat while (Moins de 6 ans ?) is (Oui)
+
+partition "Processus de Soutenance" {
+    :Doctorant : Soumission demande de soutenance;
+    :Système : Vérification prérequis (200h, Articles, etc.);
+    
+    if (Prérequis validés ?) then (Oui)
+        :Directeur : Proposition du Jury;
+        :Administration : Envoi du manuscrit aux rapporteurs;
+        if (Rapports Favorables ?) then (Oui)
+            :Administration : Autorisation finale;
+            :Administration : Fixation Date/Heure/Lieu;
+            :Soutenance de thèse;
+            stop
+        else (Non)
+            :Demande de révisions;
+            detach
+        endif
+    else (Non)
+        :Alerte prérequis manquants;
+        detach
+    endif
+}
+
+@enduml

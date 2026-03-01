@@ -1,0 +1,59 @@
+@startuml
+skinparam style strictuml
+skinparam sequenceMessageAlign center
+
+actor "Candidat" as User
+participant "Navigateur" as Browser
+participant "Controller Inscription" as Ctrl
+participant "Service Inscription" as Srv
+participant "Base PostgreSQL" as DB
+actor "Directeur" as Dir
+actor "Administration" as Admin
+
+== Soumission du Dossier (Etape 1) ==
+
+User -> Browser: Remplit formulaire HTML
+Browser -> Ctrl: POST /inscription (Multipart Form Data)
+activate Ctrl
+Ctrl -> Srv: verifierEtEnregistrer(Données, Fichiers)
+activate Srv
+Srv -> Srv: Validation formats (PDF/JPG)
+Srv -> DB: INSERT INTO dossier (statut='ATTENTE_AVIS_DIR')
+Srv -> DB: INSERT INTO documents (...)
+Srv --> Ctrl: Dossier sauvegardé
+deactivate Srv
+Ctrl -> Srv: envoyerEmailNotification(Directeur)
+Ctrl --> Browser: Redirection /dashboard (Success Flash Message)
+deactivate Ctrl
+Browser --> User: Affiche Dashboard "En attente d'avis"
+
+== Avis du Directeur (Etape 2) ==
+
+Dir -> Browser: Accède à /avis/liste
+Browser -> Ctrl: GET /avis/liste
+Ctrl -> DB: SELECT * FROM dossiers WHERE dir_id=...
+DB --> Ctrl: Résultats
+Ctrl --> Browser: Rendu Thymeleaf (Liste dossiers)
+Dir -> Browser: Clique "Donner Avis" (Favorable)
+Browser -> Ctrl: POST /avis/valider/{id}
+activate Ctrl
+Ctrl -> DB: UPDATE dossier SET statut='ATTENTE_VAL_ADMIN'
+Ctrl --> Browser: Redirection /avis/liste
+deactivate Ctrl
+
+== Validation Administrative (Etape 3) ==
+
+Admin -> Browser: Accède à /admin/validation
+Browser -> Ctrl: GET /admin/validation
+Ctrl --> Browser: Rendu Thymeleaf (Dossiers à vérifier)
+Admin -> Browser: Clique "Valider Dossier"
+Browser -> Ctrl: POST /admin/finaliser/{id}
+activate Ctrl
+Ctrl -> DB: UPDATE dossier SET statut='VALIDE'
+Ctrl -> DB: UPDATE utilisateur SET role='DOCTORANT'
+Ctrl --> Browser: Redirection /admin/success
+deactivate Ctrl
+
+Browser --> User: Notification/Refresh: "Statut: Inscrit"
+
+@enduml
