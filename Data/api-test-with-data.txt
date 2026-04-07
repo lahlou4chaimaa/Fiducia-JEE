@@ -1,0 +1,166 @@
+INSERT INTO role (libelle) VALUES 
+('ROLE_CANDIDAT'), ('ROLE_DOCTORANT'), ('ROLE_DIRECTEUR'), ('ROLE_ADMIN'), ('ROLE_PERSONNEL')
+ON CONFLICT (libelle) DO NOTHING;
+
+POST http://localhost:8080/api/auth/register
+
+{
+    "nom": "Admin",
+    "prenom": "Système",
+    "email": "admin@emsi.ma",
+    "password": "adminpassword"
+}
+
+{
+    "nom": "Directeur",
+    "prenom": "DT",
+    "email": "directeur@emsi.ma",
+    "password": "directeurpassword"
+}
+
+{
+    "nom": "Administratif",
+    "prenom": "Personnel",
+    "email": "scolarite@emsi.ma",
+    "password": "scolaritepassword"
+}
+
+{
+    "nom": "Ez",
+    "prenom": "Mehdi",
+    "email": "candidat@emsi.ma",
+    "password": "candidatpassword"
+}
+
+SELECT id, email FROM utilisateur;
+SELECT id, libelle FROM role;
+SELECT * FROM user_roles;
+
+
+INSERT INTO user_roles (user_id, role_id) VALUES (1, 2);
+INSERT INTO user_roles (user_id, role_id) VALUES (2, 3); 
+INSERT INTO user_roles (user_id, role_id) VALUES (3, 6); 
+
+POST http://localhost:8080/api/auth/register-directeur
+
+{
+  "nom": "Ait Lahcen",
+  "prenom": "Directeur Test",
+  "email": "directeur@emsi.ma",
+  "password": "123",
+  "grade": "PES",
+  "laboratoire": "Labo MIAGE",
+  "specialite": "Systèmes d'Information",
+  "habilitéDirigerRecherche": true
+}
+
+POST http://localhost:8080/api/auth/register-admin
+
+{
+  "nom": "Admin",
+  "prenom": "Scolarité",
+  "email": "admin@emsi.ma",
+  "password": "123",
+  "service": "Service Doctorat",
+  "poste": "Chef de département"
+}
+
+################################################################
+
+POST http://localhost:8080/api/auth/login
+
+{
+    "email": "admin@emsi.ma",
+    "password": "adminpassword"
+}
+
+#################################################################
+GET http://localhost:8080/api/admin/users
+
+POST http://localhost:8080/api/admin/users/1/add-role
+
+{
+    "roleName": "ROLE_DIRECTEUR"
+}
+
+POST http://localhost:8080/api/admin/users/1/remove-role
+
+{
+    "roleName": "ROLE_DIRECTEUR"
+}
+
+#################################################################
+
+POST http://localhost:8080/api/admin/campagnes
+
+{
+    "libelle": "Inscription Doctorat 2026",
+    "dateDebut": "2026-01-01",
+    "dateFin": "2026-12-31",
+    "active": true
+}
+
+
+{
+    "libelle": "Doctorat EMSI - Session 2026",
+    "dateDebut": "2026-01-01",
+    "dateFin": "2026-12-31",
+    "active": true
+}
+
+
+GET http://localhost:8080/api/admin/campagnes
+
+
+GET http://localhost:8080/api/admin/campagnes/active
+
+
+PATCH http://localhost:8080/api/admin/campagnes/5/desactiver
+
+
+POST http://localhost:8080/api/candidat/soumettre-dossier
+
+
+Key,Type,Value (Exemple de données)
+sujet,Text,Optimisation des SI via l'IA générative
+directeurId,Text,2 (ID de ton professeur en base)
+laboratoire,Text,LABO-STIC (ou ton labo EMSI)
+collaboration,Text,Partenariat avec UM6P (Optionnel)
+cv,File,(Fichier PDF)
+diplome,File,(Fichier JPG ou PDF)
+lettre,File,(Lettre de motivation PDF)
+
+
+GET http://localhost:8080/api/candidat/mon-statut
+
+GET http://localhost:8080/api/candidat/mon-suivi
+
+
+POST http://localhost:8080/api/validation/directeur/3/avis
+
+{
+  "avis": "FAVORABLE",
+  "commentaires": "Excellent sujet, très pertinent pour le laboratoire SMART-LAB. Le candidat possède les prérequis nécessaires en Deep Learning.",
+  "valide":true
+}
+
+POST http://localhost:8080/api/validation/admin/5/finaliser
+
+{
+  "valide": true,
+  "remarques": "Paiement des frais d'inscription reçu. Dossier complet et conforme."
+}
+
+
+GET http://localhost:8080/api/auth/me/profile
+
+
+PUT http://localhost:8080/api/auth/me/profile
+
+{
+    "totalCreditsCumules": 25000.00
+}
+
+
+
+
