@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html class="dark" lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Fiducia Admin - Panel de Contrôle</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Manrope:wght@200..800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#041329",
+                        "primary": "#e9c176",
+                        "on-primary": "#412d00",
+                        "surface-container": "#112036",
+                        "on-surface": "#d6e3ff",
+                        "surface-container-low": "#0d1c32",
+                        "surface-bright": "#2c3951",
+                        "error": "#ffb4ab",
+                    },
+                    "fontFamily": {
+                        "headline": ["Newsreader"],
+                        "body": ["Manrope"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #041329;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+            background-attachment: fixed;
+            color: #d6e3ff;
+            font-family: 'Manrope', sans-serif;
+        }
+        .serif-title { font-family: 'Newsreader', serif; }
+        .hidden-tab { display: none; }
+    </style>
+</head>
+
+<body class="min-h-screen">
+<nav class="fixed top-0 w-full z-50 bg-[#041329] border-b border-white/10 backdrop-blur-md flex justify-between items-center px-6 h-16">
+    <div class="flex items-center gap-4">
+        <span class="font-serif text-xl tracking-tight text-[#e9c176] font-bold">Fiducia Admin</span>
+    </div>
+    <div class="flex items-center gap-4">
+        <button onclick="logout()" class="flex items-center gap-2 px-4 py-1.5 border border-error/30 text-error rounded-lg hover:bg-error/10 transition-all text-sm font-bold">
+            <span class="material-symbols-outlined text-sm">logout</span> Déconnexion
+        </button>
+    </div>
+</nav>
+
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 z-40 bg-[#010e24] flex flex-col py-8 border-r border-white/5">
+    <nav class="flex-1 space-y-1">
+        <button onclick="showTab('users')" id="btn-users" class="w-full flex items-center gap-3 px-6 py-3 border-l-4 border-primary bg-white/5 text-primary font-bold text-sm uppercase tracking-wide transition-all">
+            <span class="material-symbols-outlined">group</span>
+            <span>Utilisateurs</span>
+        </button>
+        <button onclick="showTab('campagnes')" id="btn-campagnes" class="w-full flex items-center gap-3 px-6 py-3 text-slate-400 hover:bg-white/5 transition-all text-sm font-medium uppercase tracking-wide group">
+            <span class="material-symbols-outlined group-hover:text-primary">event_available</span>
+            <span>Campagnes</span>
+        </button>
+    </nav>
+</aside>
+
+<main class="ml-64 pt-24 px-10 pb-16">
+
+    <section id="tab-users">
+        <header class="mb-12">
+            <h1 class="serif-title text-5xl font-bold text-on-surface mb-2 tracking-tight">Gestion <span class="text-primary italic">des</span> Utilisateurs</h1>
+            <p class="text-on-surface-variant text-lg">Gérez les accès et les rôles des candidats et membres du personnel.</p>
+        </header>
+
+        <div class="mb-6 flex justify-between items-center">
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
+                <input id="userSearch" onkeyup="filterUsers()" class="bg-surface-container border-none rounded-lg pl-10 pr-4 py-2 text-sm text-on-surface focus:ring-1 focus:ring-primary w-80 placeholder:text-slate-600" placeholder="Rechercher un utilisateur..." type="text"/>
+            </div>
+            <button onclick="loadUsers()" class="flex items-center gap-2 px-4 py-2 bg-surface-container-low hover:bg-surface-bright rounded-lg border border-white/5 text-sm transition-all">
+                <span class="material-symbols-outlined text-sm">refresh</span> Actualiser
+            </button>
+        </div>
+
+        <div class="bg-surface-container-low rounded-xl overflow-hidden shadow-2xl border border-white/5">
+            <table class="w-full text-left">
+                <thead>
+                <tr class="bg-surface-container/30 border-b border-white/5 text-[10px] uppercase tracking-widest font-bold text-slate-500">
+                    <th class="px-8 py-5">Utilisateur</th>
+                    <th class="px-8 py-5">Rôles Actuels</th>
+                    <th class="px-8 py-5 text-right">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="userTableBody" class="divide-y divide-white/[0.03]"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="tab-campagnes" class="hidden-tab">
+        <header class="mb-12">
+            <h1 class="serif-title text-5xl font-bold text-on-surface mb-2 tracking-tight">Campagnes <span class="text-primary italic">de</span> Recrutement</h1>
+            <p class="text-on-surface-variant text-lg">Définissez les périodes d'inscription pour les futurs doctorants.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-1">
+                <div class="bg-surface-container-low p-6 rounded-xl border border-white/5 shadow-2xl">
+                    <h3 class="text-primary font-bold uppercase tracking-widest text-xs mb-6">Nouvelle Session</h3>
+                    <form id="campagneForm" class="space-y-4">
+                        <input type="text" id="libelle" placeholder="Libellé (ex: 2026/2027)" class="w-full bg-surface-container border-none rounded-lg text-sm" required>
+                        <input type="date" id="dateDebut" class="w-full bg-surface-container border-none rounded-lg text-sm" required>
+                        <input type="date" id="dateFin" class="w-full bg-surface-container border-none rounded-lg text-sm" required>
+                        <button type="submit" class="w-full py-3 bg-primary text-on-primary font-bold rounded-lg text-sm">Publier la Campagne</button>
+                    </form>
+                </div>
+            </div>
+            <div class="lg:col-span-2">
+                <div class="bg-surface-container-low rounded-xl overflow-hidden shadow-2xl border border-white/5">
+                    <table class="w-full text-left">
+                        <thead class="bg-surface-container/30 border-b border-white/5 text-[10px] uppercase text-slate-500">
+                        <tr><th class="px-6 py-4">Session</th><th class="px-6 py-4">Statut</th><th class="px-6 py-4 text-right">Action</th></tr>
+                        </thead>
+                        <tbody id="campagneTableBody" class="divide-y divide-white/[0.03]"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    const token = localStorage.getItem('token');
+    // Sécurité simple : si pas de token, retour login
+    if (!token) window.location.href = '/login';
+
+    const availableRoles = ['ROLE_CANDIDAT', 'ROLE_ADMIN', 'ROLE_DIRECTEUR', 'ROLE_SCOLARITE', 'ROLE_DOCTORANT'];
+
+    // GESTION DES ONGLETS
+    function showTab(tabName) {
+        document.getElementById('tab-users').classList.add('hidden-tab');
+        document.getElementById('tab-campagnes').classList.add('hidden-tab');
+        document.getElementById(`tab-${tabName}`).classList.remove('hidden-tab');
+
+        // Mise à jour visuelle des boutons de la sidebar
+        const btnUsers = document.getElementById('btn-users');
+        const btnCampagnes = document.getElementById('btn-campagnes');
+
+        if(tabName === 'users') {
+            btnUsers.className = "w-full flex items-center gap-3 px-6 py-3 border-l-4 border-primary bg-white/5 text-primary font-bold text-sm uppercase tracking-wide";
+            btnCampagnes.className = "w-full flex items-center gap-3 px-6 py-3 text-slate-400 hover:bg-white/5 transition-all text-sm font-medium uppercase tracking-wide group";
+            loadUsers();
+        } else {
+            btnCampagnes.className = "w-full flex items-center gap-3 px-6 py-3 border-l-4 border-primary bg-white/5 text-primary font-bold text-sm uppercase tracking-wide";
+            btnUsers.className = "w-full flex items-center gap-3 px-6 py-3 text-slate-400 hover:bg-white/5 transition-all text-sm font-medium uppercase tracking-wide group";
+            loadCampagnes();
+        }
+    }
+
+    // LOGIQUE UTILISATEURS
+    async function loadUsers() {
+        try {
+            const res = await fetch('/api/admin/users', { headers: { 'Authorization': 'Bearer ' + token } });
+            if(!res.ok) return;
+            const users = await res.json();
+            const body = document.getElementById('userTableBody');
+            body.innerHTML = users.map(user => `
+                <tr class="user-row hover:bg-white/[0.02] transition-all">
+                    <td class="px-8 py-6">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-on-surface user-name">${user.nom} ${user.prenom}</span>
+                            <span class="text-xs text-slate-500 user-email">${user.email}</span>
+                        </div>
+                    </td>
+                    <td class="px-8 py-6">
+                        ${user.roles.map(r => `<span class="inline-flex px-2 py-0.5 rounded text-[9px] font-bold bg-primary/10 text-primary border border-primary/20 me-1 uppercase">${r.libelle.replace('ROLE_', '')}</span>`).join('')}
+                    </td>
+                    <td class="px-8 py-6 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <select id="role-${user.id}" class="bg-surface-container border border-white/10 rounded-lg text-[10px] text-on-surface focus:ring-primary">
+                                ${availableRoles.map(r => `<option value="${r}">${r.replace('ROLE_', '')}</option>`).join('')}
+                            </select>
+                            <button onclick="handleRole(${user.id}, 'add')" class="p-1.5 bg-primary/10 text-primary rounded-lg hover:bg-primary hover:text-on-primary transition-all">
+                                <span class="material-symbols-outlined text-sm">add_moderator</span>
+                            </button>
+                            <button onclick="handleRole(${user.id}, 'remove')" class="p-1.5 bg-error/10 text-error rounded-lg hover:bg-error hover:text-on-error transition-all">
+                                <span class="material-symbols-outlined text-sm">remove_moderator</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        } catch(e) { console.error("Erreur chargement users", e); }
+    }
+
+    // Filtre de recherche dynamique
+    function filterUsers() {
+        const query = document.getElementById('userSearch').value.toLowerCase();
+        const rows = document.querySelectorAll('.user-row');
+        rows.forEach(row => {
+            const name = row.querySelector('.user-name').textContent.toLowerCase();
+            const email = row.querySelector('.user-email').textContent.toLowerCase();
+            row.style.display = (name.includes(query) || email.includes(query)) ? "" : "none";
+        });
+    }
+
+    async function handleRole(userId, action) {
+        const roleName = document.getElementById(`role-${userId}`).value;
+        const endpoint = action === 'add' ? 'add-role' : 'remove-role';
+        const res = await fetch(`/api/admin/users/${userId}/${endpoint}`, {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ roleName })
+        });
+        if(res.ok) loadUsers();
+    }
+
+    // LOGIQUE CAMPAGNES
+    async function loadCampagnes() {
+        try {
+            const res = await fetch('/api/admin/campagnes', { headers: { 'Authorization': 'Bearer ' + token } });
+            const data = await res.json();
+            document.getElementById('campagneTableBody').innerHTML = data.map(c => `
+                <tr class="hover:bg-white/[0.01]">
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-on-surface">${c.libelle}</div>
+                        <div class="text-[10px] text-slate-500">${c.dateDebut} au ${c.dateFin}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        ${c.active ? '<span class="text-green-400 text-[10px] uppercase font-bold tracking-tighter bg-green-400/10 px-2 py-1 rounded border border-green-400/20">● Active</span>'
+                : '<span class="text-slate-500 text-[10px] uppercase font-bold bg-white/5 px-2 py-1 rounded border border-white/5 text-slate-500">Fermée</span>'}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        ${c.active ? `<button onclick="closeCamp(${c.id})" class="text-error text-[10px] font-bold uppercase tracking-widest hover:underline">Clôturer</button>` : '<span class="text-[10px] text-slate-700">Archivée</span>'}
+                    </td>
+                </tr>
+            `).join('');
+        } catch(e) { console.error("Erreur chargement campagnes", e); }
+    }
+
+    document.getElementById('campagneForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const body = {
+            libelle: document.getElementById('libelle').value,
+            dateDebut: document.getElementById('dateDebut').value,
+            dateFin: document.getElementById('dateFin').value,
+            active: true
+        };
+        const res = await fetch('/api/admin/campagnes', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        if(res.ok) {
+            e.target.reset();
+            loadCampagnes();
+        }
+    };
+
+    async function closeCamp(id) {
+        if(confirm("Confirmer la clôture de cette campagne ?")) {
+            await fetch(`/api/admin/campagnes/${id}/desactiver`, {
+                method: 'PATCH',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            loadCampagnes();
+        }
+    }
+
+    function logout() { localStorage.clear(); window.location.href = '/login'; }
+
+    // Initialisation au chargement
+    window.onload = () => {
+        loadUsers();
+        // Optionnel : décoder le token pour afficher l'email si tu as une lib jwt-decode
+        // document.getElementById('adminEmail').textContent = "admin@emsi.ma";
+    };
+</script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<div th:fragment="content">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">Nouvelle Campagne</div>
+                <div class="card-body">
+                    <form th:action="@{/api/admin/campagnes}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Libellé</label>
+                            <input type="text" name="libelle" class="form-control" placeholder="ex: Doctorat 2026" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Date Début</label>
+                            <input type="date" name="dateDebut" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Date Fin</label>
+                            <input type="date" name="dateFin" class="form-control" required>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="active" checked id="activeCheck">
+                            <label class="form-check-label" for="activeCheck">Activer immédiatement</label>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Lancer la Campagne</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <h3>Historique des Campagnes</h3>
+            <table class="table table-hover mt-3">
+                <thead class="table-light">
+                <tr>
+                    <th>Libellé</th>
+                    <th>Dates</th>
+                    <th>Statut</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${campagnes}">
+                    <td th:text="${c.libelle}"></td>
+                    <td th:text="${#temporals.format(c.dateDebut, 'dd/MM/yyyy')} + ' au ' + ${#temporals.format(c.dateFin, 'dd/MM/yyyy')}"></td>
+                    <td>
+                        <span th:if="${c.active}" class="badge bg-success">ACTIVE</span>
+                        <span th:unless="${c.active}" class="badge bg-secondary">FERMÉE</span>
+                    </td>
+                    <td>
+                        <form th:if="${c.active}" th:action="@{/api/admin/campagnes/{id}/desactiver(id=${c.id})}" th:method="patch">
+                            <button type="submit" class="btn btn-danger btn-sm">Désactiver</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

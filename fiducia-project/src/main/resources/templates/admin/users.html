@@ -1,0 +1,48 @@
+<div th:fragment="content">
+    <h3 class="mb-4">Annuaire des Utilisateurs</h3>
+    <table class="table table-striped align-middle">
+        <thead>
+        <tr>
+            <th>Nom & Prénom</th>
+            <th>Email</th>
+            <th>Rôles</th>
+            <th>Type</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="user : ${users}">
+            <td th:text="${user.nom} + ' ' + ${user.prenom}"></td>
+            <td th:text="${user.email}"></td>
+            <td>
+                <span th:each="r : ${user.roles}" class="badge bg-info text-dark me-1" th:text="${r.libelle}"></span>
+            </td>
+            <td>
+                <small class="text-muted" th:if="${user instanceof T(com.example.fiducia.entities.CandidatDoctorant)}">Candidat</small>
+                <small class="text-muted" th:if="${user instanceof T(com.example.fiducia.entities.DirecteurThese)}">Directeur</small>
+            </td>
+            <td>
+                <div class="dropdown">
+                    <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        Gérer Rôles
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <form th:action="@{/api/admin/users/{id}/add-role(id=${user.id})}" method="post">
+                                <input type="hidden" name="roleName" value="ROLE_DIRECTEUR">
+                                <button type="submit" class="dropdown-item">Promouvoir Directeur</button>
+                            </form>
+                        </li>
+                        <li>
+                            <form th:action="@{/api/admin/users/{id}/remove-role(id=${user.id})}" method="post">
+                                <input type="hidden" name="roleName" value="ROLE_DIRECTEUR">
+                                <button type="submit" class="dropdown-item text-danger">Retirer Directeur</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>

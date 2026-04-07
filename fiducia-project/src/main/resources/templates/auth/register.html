@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html class="dark" lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Fiducia - Inscription Candidat</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#c5c6cd",
+                        "background": "#041329",
+                        "primary": "#e9c176",
+                        "on-primary": "#412d00",
+                        "surface-container": "#112036",
+                        "on-surface": "#d6e3ff",
+                        "outline-variant": "#44474d",
+                        "surface-container-low": "#0d1c32",
+                    },
+                    "fontFamily": {
+                        "headline": ["Newsreader"],
+                        "body": ["Manrope"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            background-color: #041329;
+            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.03) 1px, transparent 0);
+            background-size: 40px 40px;
+            font-family: 'Manrope', sans-serif;
+            color: #d6e3ff;
+        }
+        .glass-panel {
+            background: rgba(28, 42, 65, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(233, 193, 118, 0.1);
+        }
+        input:focus {
+            outline: none;
+            border-bottom-color: #e9c176 !important;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+<header class="fixed top-0 w-full z-50 bg-[#041329] border-b border-white/10 flex justify-between items-center px-6 h-16">
+    <div class="font-serif text-xl tracking-tight text-[#e9c176]">Fiducia</div>
+    <div class="flex items-center gap-4 text-sm">
+        <a th:href="@{/login}" class="text-on-surface-variant hover:text-primary transition-colors">Déjà inscrit ? Se connecter</a>
+    </div>
+</header>
+
+<main class="pt-32 pb-20 px-6 max-w-5xl mx-auto">
+    <div class="mb-16 relative text-center md:text-left">
+        <h1 class="font-headline text-5xl md:text-6xl font-bold text-on-surface mb-4">Créer un compte</h1>
+        <p class="text-on-surface-variant max-w-2xl text-lg font-light">Initiez votre parcours de recherche. Remplissez vos informations pour accéder au portail de candidature.</p>
+    </div>
+
+    <div class="glass-panel p-8 md:p-12 rounded-xl shadow-2xl relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
+
+        <form id="registerForm" class="space-y-12 relative z-10">
+            <div class="space-y-8">
+                <div class="flex items-center gap-4 mb-8">
+                    <span class="material-symbols-outlined text-primary text-3xl">person_add</span>
+                    <h2 class="font-headline text-3xl font-semibold">Informations de Profil</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                    <div class="flex flex-col gap-2">
+                        <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant">Prénom</label>
+                        <input id="prenom" class="bg-transparent border-b border-outline-variant py-3 text-lg transition-all placeholder:text-outline-variant/30" placeholder="ex: Jean" type="text" required/>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant">Nom</label>
+                        <input id="nom" class="bg-transparent border-b border-outline-variant py-3 text-lg transition-all placeholder:text-outline-variant/30" placeholder="ex: Dupont" type="text" required/>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant">Email Académique</label>
+                        <input id="email" class="bg-transparent border-b border-outline-variant py-3 text-lg transition-all placeholder:text-outline-variant/30" placeholder="j.dupont@universite.fr" type="email" required/>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant">Mot de passe</label>
+                        <input id="password" class="bg-transparent border-b border-outline-variant py-3 text-lg transition-all placeholder:text-outline-variant/30" placeholder="••••••••" type="password" required/>
+                    </div>
+                </div>
+            </div>
+
+            <div id="message" class="text-center font-medium"></div>
+
+            <div class="pt-10 flex justify-end items-center border-t border-outline-variant/20">
+                <button class="px-12 py-4 bg-primary text-on-primary rounded-lg font-bold hover:brightness-110 transition-all shadow-lg flex items-center gap-3" type="submit">
+                    S'inscrire
+                    <span class="material-symbols-outlined">arrow_forward</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script>
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const msgDiv = document.getElementById('message');
+
+        const data = {
+            nom: document.getElementById('nom').value,
+            prenom: document.getElementById('prenom').value,
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value
+        };
+
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                msgDiv.className = "text-green-400 text-sm bg-green-400/10 py-3 rounded-lg";
+                msgDiv.innerHTML = "Inscription réussie ! Redirection vers la connexion...";
+                setTimeout(() => window.location.href = '/login', 2000);
+            } else {
+                msgDiv.className = "text-red-400 text-sm bg-red-400/10 py-3 rounded-lg";
+                msgDiv.innerHTML = "Erreur : L'email est peut-être déjà utilisé.";
+            }
+        } catch (error) {
+            msgDiv.className = "text-red-400 text-sm bg-red-400/10 py-3 rounded-lg";
+            msgDiv.innerHTML = "Erreur de connexion au serveur.";
+        }
+    });
+</script>
+</body>
+</html>
