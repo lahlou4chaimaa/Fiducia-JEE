@@ -2,8 +2,10 @@ package com.example.fiducia.controllers;
 
 import com.example.fiducia.dto.RoleRequest;
 import com.example.fiducia.entities.Campagne;
+import com.example.fiducia.entities.DirecteurThese;
 import com.example.fiducia.entities.Utilisateur;
 import com.example.fiducia.repositories.CampagneRepository;
+import com.example.fiducia.repositories.DirecteurTheseRepository;
 import com.example.fiducia.repositories.UserRepository;
 import com.example.fiducia.services.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -24,6 +28,7 @@ public class AdminController {
     private IUserService userService;
     @Autowired private CampagneRepository campagneRepository;
     @Autowired private UserRepository userRepository;
+    @Autowired private DirecteurTheseRepository directeurRepository;
 
     // Voir tous les utilisateurs
     @PreAuthorize("hasRole('ADMIN')")
@@ -32,6 +37,7 @@ public class AdminController {
         // Grâce au polymorphisme, cela retourne tous les types d'utilisateurs
         return ResponseEntity.ok(userRepository.findAll());
     }
+
     // Ajouter un rôle
     @PostMapping("/users/{id}/add-role")
     public ResponseEntity<?> addRole(@PathVariable Long id, @RequestBody RoleRequest request) {
@@ -85,5 +91,4 @@ public class AdminController {
         campagneRepository.save(campagne);
         return ResponseEntity.ok("La campagne " + campagne.getLibelle() + " est désormais fermée.");
     }
-
 }

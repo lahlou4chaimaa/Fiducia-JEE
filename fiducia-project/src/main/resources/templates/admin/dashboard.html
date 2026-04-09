@@ -49,7 +49,8 @@
     <div class="flex items-center gap-4">
         <span class="font-serif text-xl tracking-tight text-[#e9c176] font-bold">Fiducia Admin</span>
     </div>
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-4 text-xs font-mono text-slate-400 italic">
+        <span id="adminDisplay">Session Administrateur</span>
         <button onclick="logout()" class="flex items-center gap-2 px-4 py-1.5 border border-error/30 text-error rounded-lg hover:bg-error/10 transition-all text-sm font-bold">
             <span class="material-symbols-outlined text-sm">logout</span> Déconnexion
         </button>
@@ -66,7 +67,14 @@
             <span class="material-symbols-outlined group-hover:text-primary">event_available</span>
             <span>Campagnes</span>
         </button>
-    </nav>
+        <button onclick="showTab('registration')" id="btn-registration" class="w-full flex items-center gap-3 px-6 py-3 text-slate-400 hover:bg-white/5 transition-all text-sm font-medium uppercase tracking-wide group">
+            <span class="material-symbols-outlined group-hover:text-primary">person_add</span>
+            <span>Inscriptions</span>
+        </button>
+        <button onclick="window.location.href='/profile'" class="w-full flex items-center gap-3 px-6 py-3 text-slate-400 hover:bg-white/5 transition-all text-sm font-medium uppercase tracking-wide group">
+            <span class="material-symbols-outlined">account_circle</span>
+            <span>Mon Profil</span>
+        </button>
 </aside>
 
 <main class="ml-64 pt-24 px-10 pb-16">
@@ -74,25 +82,26 @@
     <section id="tab-users">
         <header class="mb-12">
             <h1 class="serif-title text-5xl font-bold text-on-surface mb-2 tracking-tight">Gestion <span class="text-primary italic">des</span> Utilisateurs</h1>
-            <p class="text-on-surface-variant text-lg">Gérez les accès et les rôles des candidats et membres du personnel.</p>
+            <p class="text-on-surface-variant text-lg">Habilitations et contrôle des accès.</p>
         </header>
 
         <div class="mb-6 flex justify-between items-center">
             <div class="relative">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
-                <input id="userSearch" onkeyup="filterUsers()" class="bg-surface-container border-none rounded-lg pl-10 pr-4 py-2 text-sm text-on-surface focus:ring-1 focus:ring-primary w-80 placeholder:text-slate-600" placeholder="Rechercher un utilisateur..." type="text"/>
+                <input id="userSearch" onkeyup="filterUsers()" class="bg-surface-container border-none rounded-lg pl-10 pr-4 py-2 text-sm text-on-surface focus:ring-1 focus:ring-primary w-80" placeholder="Rechercher..."/>
             </div>
             <button onclick="loadUsers()" class="flex items-center gap-2 px-4 py-2 bg-surface-container-low hover:bg-surface-bright rounded-lg border border-white/5 text-sm transition-all">
                 <span class="material-symbols-outlined text-sm">refresh</span> Actualiser
             </button>
         </div>
 
+        </nav>
         <div class="bg-surface-container-low rounded-xl overflow-hidden shadow-2xl border border-white/5">
             <table class="w-full text-left">
                 <thead>
-                <tr class="bg-surface-container/30 border-b border-white/5 text-[10px] uppercase tracking-widest font-bold text-slate-500">
+                <tr class="bg-surface-container/30 border-b border-white/5 text-[10px] uppercase font-bold text-slate-500">
                     <th class="px-8 py-5">Utilisateur</th>
-                    <th class="px-8 py-5">Rôles Actuels</th>
+                    <th class="px-8 py-5">Rôles</th>
                     <th class="px-8 py-5 text-right">Actions</th>
                 </tr>
                 </thead>
@@ -103,27 +112,27 @@
 
     <section id="tab-campagnes" class="hidden-tab">
         <header class="mb-12">
-            <h1 class="serif-title text-5xl font-bold text-on-surface mb-2 tracking-tight">Campagnes <span class="text-primary italic">de</span> Recrutement</h1>
-            <p class="text-on-surface-variant text-lg">Définissez les périodes d'inscription pour les futurs doctorants.</p>
+            <h1 class="serif-title text-5xl font-bold text-on-surface mb-2 tracking-tight">Sessions <span class="text-primary italic">de</span> Doctorat</h1>
+            <p class="text-on-surface-variant text-lg">Calendrier des dépôts de dossiers.</p>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-1">
-                <div class="bg-surface-container-low p-6 rounded-xl border border-white/5 shadow-2xl">
-                    <h3 class="text-primary font-bold uppercase tracking-widest text-xs mb-6">Nouvelle Session</h3>
+                <div class="bg-surface-container-low p-6 rounded-xl border border-white/5">
+                    <h3 class="text-primary font-bold uppercase text-xs mb-6 tracking-widest">Planifier</h3>
                     <form id="campagneForm" class="space-y-4">
-                        <input type="text" id="libelle" placeholder="Libellé (ex: 2026/2027)" class="w-full bg-surface-container border-none rounded-lg text-sm" required>
+                        <input type="text" id="libelle" placeholder="Libellé" class="w-full bg-surface-container border-none rounded-lg text-sm" required>
                         <input type="date" id="dateDebut" class="w-full bg-surface-container border-none rounded-lg text-sm" required>
                         <input type="date" id="dateFin" class="w-full bg-surface-container border-none rounded-lg text-sm" required>
-                        <button type="submit" class="w-full py-3 bg-primary text-on-primary font-bold rounded-lg text-sm">Publier la Campagne</button>
+                        <button type="submit" class="w-full py-3 bg-primary text-on-primary font-bold rounded-lg text-sm">Lancer la session</button>
                     </form>
                 </div>
             </div>
             <div class="lg:col-span-2">
-                <div class="bg-surface-container-low rounded-xl overflow-hidden shadow-2xl border border-white/5">
+                <div class="bg-surface-container-low rounded-xl border border-white/5 overflow-hidden">
                     <table class="w-full text-left">
-                        <thead class="bg-surface-container/30 border-b border-white/5 text-[10px] uppercase text-slate-500">
-                        <tr><th class="px-6 py-4">Session</th><th class="px-6 py-4">Statut</th><th class="px-6 py-4 text-right">Action</th></tr>
+                        <thead class="bg-surface-container/30 border-b border-white/5 text-[10px] uppercase text-slate-500 font-bold">
+                        <tr><th class="px-6 py-4">Nom de Session</th><th class="px-6 py-4">Statut</th><th class="px-6 py-4 text-right">Action</th></tr>
                         </thead>
                         <tbody id="campagneTableBody" class="divide-y divide-white/[0.03]"></tbody>
                     </table>
@@ -131,154 +140,221 @@
             </div>
         </div>
     </section>
+
+    <section id="tab-registration" class="hidden-tab">
+        <header class="mb-12">
+            <h1 class="serif-title text-5xl font-bold text-on-surface mb-2 tracking-tight">Ajout <span class="text-primary italic">de</span> Collaborateurs</h1>
+            <p class="text-on-surface-variant text-lg">Inscrivez manuellement des Directeurs ou du Personnel Administratif.</p>
+        </header>
+
+        <div class="max-w-2xl bg-surface-container-low p-8 rounded-xl border border-white/5 shadow-2xl mx-auto">
+            <div class="flex gap-4 mb-8">
+                <button onclick="toggleRegType('DIRECTEUR')" id="type-directeur" class="flex-1 py-2 rounded-lg border border-primary bg-primary/10 text-primary font-bold text-xs uppercase tracking-widest transition-all">Directeur</button>
+                <button onclick="toggleRegType('ADMIN')" id="type-admin" class="flex-1 py-2 rounded-lg border border-white/10 text-slate-500 font-bold text-xs uppercase tracking-widest transition-all">Administratif</button>
+            </div>
+
+            <form id="staffForm" class="space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" id="staffNom" placeholder="Nom" class="bg-surface-container border-none rounded-lg text-sm" required>
+                    <input type="text" id="staffPrenom" placeholder="Prénom" class="bg-surface-container border-none rounded-lg text-sm" required>
+                </div>
+                <input type="email" id="staffEmail" placeholder="Email institutionnel" class="w-full bg-surface-container border-none rounded-lg text-sm" required>
+                <input type="password" id="staffPassword" placeholder="Mot de passe temporaire" class="w-full bg-surface-container border-none rounded-lg text-sm" required>
+
+                <div id="fields-directeur" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="text" id="staffGrade" placeholder="Grade (ex: PES, PH)" class="bg-surface-container border-none rounded-lg text-sm">
+                        <input type="text" id="staffSpecialite" placeholder="Spécialité" class="bg-surface-container border-none rounded-lg text-sm">
+                    </div>
+                    <input type="text" id="staffLabo" placeholder="Laboratoire" class="w-full bg-surface-container border-none rounded-lg text-sm">
+                    <div class="flex items-center gap-3 px-2">
+                        <input type="checkbox" id="staffHdr" class="rounded border-none bg-surface-container text-primary focus:ring-0">
+                        <label for="staffHdr" class="text-sm text-slate-400">Habilité à Diriger des Recherches (HDR)</label>
+                    </div>
+                </div>
+
+                <div id="fields-admin" class="hidden-tab space-y-4">
+                    <input type="text" id="staffService" placeholder="Service (ex: Scolarité)" class="w-full bg-surface-container border-none rounded-lg text-sm">
+                    <input type="text" id="staffPoste" placeholder="Poste (ex: Chef de service)" class="w-full bg-surface-container border-none rounded-lg text-sm">
+                </div>
+
+                <button type="submit" class="w-full py-4 bg-primary text-on-primary font-bold rounded-lg text-sm mt-4 hover:scale-[1.01] transition-all">
+                    Finaliser l'inscription
+                </button>
+            </form>
+        </div>
+    </section>
 </main>
 
 <script>
     const token = localStorage.getItem('token');
-    // Sécurité simple : si pas de token, retour login
     if (!token) window.location.href = '/login';
 
     const availableRoles = ['ROLE_CANDIDAT', 'ROLE_ADMIN', 'ROLE_DIRECTEUR', 'ROLE_SCOLARITE', 'ROLE_DOCTORANT'];
+    let currentRegType = 'DIRECTEUR';
 
-    // GESTION DES ONGLETS
+    // NAVIGATION
     function showTab(tabName) {
-        document.getElementById('tab-users').classList.add('hidden-tab');
-        document.getElementById('tab-campagnes').classList.add('hidden-tab');
+        ['users', 'campagnes', 'registration'].forEach(t => {
+            document.getElementById(`tab-${t}`).classList.add('hidden-tab');
+            document.getElementById(`btn-${t}`).className = "w-full flex items-center gap-3 px-6 py-3 text-slate-400 hover:bg-white/5 transition-all text-sm font-medium uppercase tracking-wide group";
+        });
+
         document.getElementById(`tab-${tabName}`).classList.remove('hidden-tab');
+        document.getElementById(`btn-${tabName}`).className = "w-full flex items-center gap-3 px-6 py-3 border-l-4 border-primary bg-white/5 text-primary font-bold text-sm uppercase tracking-wide transition-all";
 
-        // Mise à jour visuelle des boutons de la sidebar
-        const btnUsers = document.getElementById('btn-users');
-        const btnCampagnes = document.getElementById('btn-campagnes');
+        if(tabName === 'users') loadUsers();
+        if(tabName === 'campagnes') loadCampagnes();
+    }
 
-        if(tabName === 'users') {
-            btnUsers.className = "w-full flex items-center gap-3 px-6 py-3 border-l-4 border-primary bg-white/5 text-primary font-bold text-sm uppercase tracking-wide";
-            btnCampagnes.className = "w-full flex items-center gap-3 px-6 py-3 text-slate-400 hover:bg-white/5 transition-all text-sm font-medium uppercase tracking-wide group";
-            loadUsers();
+    // TOGGLE TYPE INSCRIPTION
+    function toggleRegType(type) {
+        currentRegType = type;
+        const btnD = document.getElementById('type-directeur');
+        const btnA = document.getElementById('type-admin');
+        const fD = document.getElementById('fields-directeur');
+        const fA = document.getElementById('fields-admin');
+
+        if(type === 'DIRECTEUR') {
+            btnD.className = "flex-1 py-2 rounded-lg border border-primary bg-primary/10 text-primary font-bold text-xs uppercase tracking-widest";
+            btnA.className = "flex-1 py-2 rounded-lg border border-white/10 text-slate-500 font-bold text-xs uppercase tracking-widest";
+            fD.classList.remove('hidden-tab');
+            fA.classList.add('hidden-tab');
         } else {
-            btnCampagnes.className = "w-full flex items-center gap-3 px-6 py-3 border-l-4 border-primary bg-white/5 text-primary font-bold text-sm uppercase tracking-wide";
-            btnUsers.className = "w-full flex items-center gap-3 px-6 py-3 text-slate-400 hover:bg-white/5 transition-all text-sm font-medium uppercase tracking-wide group";
-            loadCampagnes();
+            btnA.className = "flex-1 py-2 rounded-lg border border-primary bg-primary/10 text-primary font-bold text-xs uppercase tracking-widest";
+            btnD.className = "flex-1 py-2 rounded-lg border border-white/10 text-slate-500 font-bold text-xs uppercase tracking-widest";
+            fA.classList.remove('hidden-tab');
+            fD.classList.add('hidden-tab');
         }
     }
 
+    // FORM STAFF SUBMISSION
+    document.getElementById('staffForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const endpoint = currentRegType === 'DIRECTEUR' ? '/api/auth/register-directeur' : '/api/auth/register-admin';
+
+        // Base commune (Utilisateur)
+        const payload = {
+            nom: document.getElementById('staffNom').value,
+            prenom: document.getElementById('staffPrenom').value,
+            email: document.getElementById('staffEmail').value,
+            password: document.getElementById('staffPassword').value
+        };
+
+        // Ajout des champs spécifiques selon le type
+        if (currentRegType === 'DIRECTEUR') {
+            payload.grade = document.getElementById('staffGrade').value;
+            payload.laboratoire = document.getElementById('staffLabo').value;
+            payload.specialite = document.getElementById('staffSpecialite').value;
+            payload.habilitéDirigerRecherche = document.getElementById('staffHdr').checked;
+        } else {
+            payload.service = document.getElementById('staffService').value;
+            payload.poste = document.getElementById('staffPoste').value;
+        }
+
+        try {
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                alert("Compte " + currentRegType.toLowerCase() + " créé avec succès !");
+                e.target.reset();
+                showTab('users'); // Redirige vers la liste pour voir le nouvel inscrit
+            } else {
+                const err = await res.text();
+                alert("Erreur: " + err);
+            }
+        } catch (error) {
+            console.error("Erreur lors de l'inscription:", error);
+            alert("Impossible de contacter le serveur.");
+        }
+    };
+
     // LOGIQUE UTILISATEURS
     async function loadUsers() {
-        try {
-            const res = await fetch('/api/admin/users', { headers: { 'Authorization': 'Bearer ' + token } });
-            if(!res.ok) return;
-            const users = await res.json();
-            const body = document.getElementById('userTableBody');
-            body.innerHTML = users.map(user => `
-                <tr class="user-row hover:bg-white/[0.02] transition-all">
-                    <td class="px-8 py-6">
-                        <div class="flex flex-col">
-                            <span class="font-bold text-on-surface user-name">${user.nom} ${user.prenom}</span>
-                            <span class="text-xs text-slate-500 user-email">${user.email}</span>
-                        </div>
-                    </td>
-                    <td class="px-8 py-6">
-                        ${user.roles.map(r => `<span class="inline-flex px-2 py-0.5 rounded text-[9px] font-bold bg-primary/10 text-primary border border-primary/20 me-1 uppercase">${r.libelle.replace('ROLE_', '')}</span>`).join('')}
-                    </td>
-                    <td class="px-8 py-6 text-right">
-                        <div class="flex items-center justify-end gap-2">
-                            <select id="role-${user.id}" class="bg-surface-container border border-white/10 rounded-lg text-[10px] text-on-surface focus:ring-primary">
-                                ${availableRoles.map(r => `<option value="${r}">${r.replace('ROLE_', '')}</option>`).join('')}
-                            </select>
-                            <button onclick="handleRole(${user.id}, 'add')" class="p-1.5 bg-primary/10 text-primary rounded-lg hover:bg-primary hover:text-on-primary transition-all">
-                                <span class="material-symbols-outlined text-sm">add_moderator</span>
-                            </button>
-                            <button onclick="handleRole(${user.id}, 'remove')" class="p-1.5 bg-error/10 text-error rounded-lg hover:bg-error hover:text-on-error transition-all">
-                                <span class="material-symbols-outlined text-sm">remove_moderator</span>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-        } catch(e) { console.error("Erreur chargement users", e); }
+        const res = await fetch('/api/admin/users', { headers: { 'Authorization': 'Bearer ' + token } });
+        const users = await res.json();
+        const body = document.getElementById('userTableBody');
+        body.innerHTML = users.map(user => `
+            <tr class="user-row hover:bg-white/[0.02]">
+                <td class="px-8 py-5">
+                    <div class="flex flex-col">
+                        <span class="font-bold text-on-surface user-name">${user.nom} ${user.prenom}</span>
+                        <span class="text-[11px] text-slate-500 user-email">${user.email}</span>
+                    </div>
+                </td>
+                <td class="px-8 py-5">${user.roles.map(r => `<span class="inline-flex px-2 py-0.5 rounded text-[8px] font-black bg-primary/10 text-primary border border-primary/20 me-1 uppercase">${r.libelle.replace('ROLE_', '')}</span>`).join('')}</td>
+                <td class="px-8 py-5 text-right">
+                    <div class="flex justify-end gap-1">
+                        <select id="role-${user.id}" class="bg-surface-container border-none rounded text-[10px] text-on-surface py-1">
+                            ${availableRoles.map(r => `<option value="${r}">${r.replace('ROLE_', '')}</option>`).join('')}
+                        </select>
+                        <button onclick="handleRole(${user.id}, 'add')" class="p-1.5 bg-primary/10 text-primary rounded hover:bg-primary hover:text-on-primary transition-all">
+                            <span class="material-symbols-outlined text-sm">add</span>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
     }
 
-    // Filtre de recherche dynamique
     function filterUsers() {
         const query = document.getElementById('userSearch').value.toLowerCase();
-        const rows = document.querySelectorAll('.user-row');
-        rows.forEach(row => {
-            const name = row.querySelector('.user-name').textContent.toLowerCase();
-            const email = row.querySelector('.user-email').textContent.toLowerCase();
-            row.style.display = (name.includes(query) || email.includes(query)) ? "" : "none";
+        document.querySelectorAll('.user-row').forEach(row => {
+            const text = row.querySelector('.user-name').textContent.toLowerCase() + row.querySelector('.user-email').textContent.toLowerCase();
+            row.style.display = text.includes(query) ? "" : "none";
         });
     }
 
     async function handleRole(userId, action) {
         const roleName = document.getElementById(`role-${userId}`).value;
-        const endpoint = action === 'add' ? 'add-role' : 'remove-role';
-        const res = await fetch(`/api/admin/users/${userId}/${endpoint}`, {
+        await fetch(`/api/admin/users/${userId}/add-role`, {
             method: 'POST',
             headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
             body: JSON.stringify({ roleName })
         });
-        if(res.ok) loadUsers();
+        loadUsers();
     }
 
     // LOGIQUE CAMPAGNES
     async function loadCampagnes() {
-        try {
-            const res = await fetch('/api/admin/campagnes', { headers: { 'Authorization': 'Bearer ' + token } });
-            const data = await res.json();
-            document.getElementById('campagneTableBody').innerHTML = data.map(c => `
-                <tr class="hover:bg-white/[0.01]">
-                    <td class="px-6 py-4">
-                        <div class="font-bold text-on-surface">${c.libelle}</div>
-                        <div class="text-[10px] text-slate-500">${c.dateDebut} au ${c.dateFin}</div>
-                    </td>
-                    <td class="px-6 py-4">
-                        ${c.active ? '<span class="text-green-400 text-[10px] uppercase font-bold tracking-tighter bg-green-400/10 px-2 py-1 rounded border border-green-400/20">● Active</span>'
-                : '<span class="text-slate-500 text-[10px] uppercase font-bold bg-white/5 px-2 py-1 rounded border border-white/5 text-slate-500">Fermée</span>'}
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                        ${c.active ? `<button onclick="closeCamp(${c.id})" class="text-error text-[10px] font-bold uppercase tracking-widest hover:underline">Clôturer</button>` : '<span class="text-[10px] text-slate-700">Archivée</span>'}
-                    </td>
-                </tr>
-            `).join('');
-        } catch(e) { console.error("Erreur chargement campagnes", e); }
+        const res = await fetch('/api/admin/campagnes', { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        document.getElementById('campagneTableBody').innerHTML = data.map(c => `
+            <tr>
+                <td class="px-6 py-4 font-bold text-sm">${c.libelle}</td>
+                <td class="px-6 py-4">${c.active ? '<span class="text-green-400 text-[10px] font-bold uppercase tracking-widest">● Active</span>' : '<span class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Close</span>'}</td>
+                <td class="px-6 py-4 text-right">
+                    ${c.active ? `<button onclick="closeCamp(${c.id})" class="text-error text-[10px] font-bold uppercase">Clôturer</button>` : ''}
+                </td>
+            </tr>
+        `).join('');
     }
 
     document.getElementById('campagneForm').onsubmit = async (e) => {
         e.preventDefault();
-        const body = {
-            libelle: document.getElementById('libelle').value,
-            dateDebut: document.getElementById('dateDebut').value,
-            dateFin: document.getElementById('dateFin').value,
-            active: true
-        };
-        const res = await fetch('/api/admin/campagnes', {
+        const body = { libelle: document.getElementById('libelle').value, dateDebut: document.getElementById('dateDebut').value, dateFin: document.getElementById('dateFin').value, active: true };
+        await fetch('/api/admin/campagnes', {
             method: 'POST',
             headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         });
-        if(res.ok) {
-            e.target.reset();
-            loadCampagnes();
-        }
+        e.target.reset();
+        loadCampagnes();
     };
 
     async function closeCamp(id) {
-        if(confirm("Confirmer la clôture de cette campagne ?")) {
-            await fetch(`/api/admin/campagnes/${id}/desactiver`, {
-                method: 'PATCH',
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-            loadCampagnes();
-        }
+        await fetch(`/api/admin/campagnes/${id}/desactiver`, { method: 'PATCH', headers: { 'Authorization': 'Bearer ' + token } });
+        loadCampagnes();
     }
 
     function logout() { localStorage.clear(); window.location.href = '/login'; }
 
-    // Initialisation au chargement
-    window.onload = () => {
-        loadUsers();
-        // Optionnel : décoder le token pour afficher l'email si tu as une lib jwt-decode
-        // document.getElementById('adminEmail').textContent = "admin@emsi.ma";
-    };
+    // Init
+    loadUsers();
 </script>
 </body>
 </html>

@@ -142,11 +142,15 @@
                 localStorage.setItem('token', result.token);
                 localStorage.setItem('email', result.email);
 
-                // Redirection selon le rôle
+                // Redirection selon le rôle (Ordre important)
                 if (result.roles.includes('ROLE_ADMIN')) {
                     window.location.href = '/admin/dashboard';
-                } else {
-                    window.location.href = '/candidat/home';
+                }
+                else if (result.roles.includes('ROLE_DIRECTEUR')) { // Ajout de cette condition
+                    window.location.href = '/directeur/dashboard';
+                }
+                else if (result.roles.includes('ROLE_CANDIDAT')) {
+                    window.location.href = '/candidat/dashboard';
                 }
             } else {
                 errorMsg.classList.remove('hidden');

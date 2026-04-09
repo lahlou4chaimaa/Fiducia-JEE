@@ -25,6 +25,19 @@ public class DossierInscriptionService {
         dossier.setDateDerniereModification(LocalDateTime.now());
         dossierRepository.save(dossier);
     }
+    @Transactional
+    public void transmettreAuDirecteur(Long dossierId) {
+        DossierInscription dossier = dossierRepository.findById(dossierId)
+                .orElseThrow(() -> new RuntimeException("Dossier introuvable"));
+
+        // On passe de SOUMIS à EN_ATTENTE_DIRECTEUR
+        if (dossier.getStatut() == StatutDossier.SOUMIS) {
+            dossier.setStatut(StatutDossier.EN_ATTENTE_DIRECTEUR);
+            dossier.setDateDerniereModification(LocalDateTime.now());
+            dossierRepository.save(dossier);
+            System.out.println("Le dossier " + dossierId + " est maintenant visible par le directeur.");
+        }
+    }
 
     public DossierStatusDTO obtenirSuiviCandidat(CandidatDoctorant candidat) {
         DossierInscription dossier = dossierRepository.findByCandidat(candidat)

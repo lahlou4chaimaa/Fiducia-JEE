@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html class="dark" lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <title>Espace Directeur - Fiducia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <style>
+        body { background-color: #041329; color: #d6e3ff; font-family: 'Manrope', sans-serif; }
+        .glass-card { background: rgba(17, 32, 54, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
+        .sidebar-item-active { border-left: 4px solid #e9c176; background: rgba(255,255,255,0.05); color: #e9c176; font-weight: bold; }
+    </style>
+</head>
+<body class="flex min-h-screen">
+
+<aside class="fixed left-0 top-0 h-screen w-64 bg-[#010e24] border-r border-white/5 flex flex-col py-8 z-50">
+    <div class="px-6 mb-10">
+        <h1 class="text-2xl font-bold text-yellow-500 italic">Fiducia</h1>
+        <p class="text-[10px] text-slate-500 uppercase tracking-widest">Espace Directeur</p>
+    </div>
+    <nav class="flex-1 space-y-1">
+        <a href="/directeur/dashboard" class="sidebar-item-active w-full flex items-center gap-3 px-6 py-4 text-sm transition-all">
+            <span class="material-symbols-outlined">folder_shared</span>
+            <span>Dossiers à valider</span>
+        </a>
+        <a href="/profile" class="w-full flex items-center gap-3 px-6 py-4 text-slate-400 hover:bg-white/5 transition-all text-sm group">
+            <span class="material-symbols-outlined group-hover:text-yellow-500">account_circle</span>
+            <span>Mon Profil</span>
+        </a>
+    </nav>
+    <div class="px-6 pt-6 border-t border-white/5">
+        <button onclick="logout()" class="w-full flex items-center gap-3 text-red-400 hover:text-red-300 transition-all text-sm">
+            <span class="material-symbols-outlined">logout</span>
+            <span>Déconnexion</span>
+        </button>
+    </div>
+</aside>
+
+<main class="ml-64 flex-1 p-8 md:p-12">
+    <header class="mb-12 flex justify-between items-center">
+        <div>
+            <h2 class="text-3xl font-bold text-white">Gestion des Candidatures</h2>
+            <p class="text-slate-400 mt-2 italic">Consultez et donnez votre avis sur les nouveaux dossiers de thèse.</p>
+        </div>
+        <div id="count-badge" class="px-4 py-2 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-yellow-500 text-xs font-bold">
+            0 Dossier(s)
+        </div>
+    </header>
+
+    <div id="dossiers-container" class="grid gap-6">
+        <div class="flex justify-center py-20">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
+        </div>
+    </div>
+</main>
+
+<div id="modal-avis" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div class="glass-card w-full max-w-lg p-8 rounded-3xl shadow-2xl border border-white/10">
+        <h3 class="text-xl font-bold mb-2">Évaluation du dossier</h3>
+        <p class="text-xs text-slate-500 mb-6 font-medium">Votre décision sera transmise à l'administration pour validation finale.</p>
+
+        <label class="text-[10px] uppercase font-black text-slate-500 mb-2 block tracking-widest">Commentaires (Optionnel)</label>
+        <textarea id="comm-directeur" placeholder="Ex: Profil excellent, sujet pertinent avec les axes du labo..."
+                  class="w-full bg-[#081933] border border-white/10 rounded-xl p-4 text-sm mb-8 h-32 outline-none focus:border-yellow-500 transition-all text-white"></textarea>
+
+        <div class="flex gap-4">
+            <button onclick="validerAvis(false)" class="flex-1 py-4 rounded-xl border border-red-500/50 text-red-400 font-bold hover:bg-red-500/10 transition-all">
+                Avis Défavorable
+            </button>
+            <button onclick="validerAvis(true)" class="flex-1 py-4 rounded-xl bg-yellow-500 text-[#010e24] font-bold hover:scale-[1.02] transition-all shadow-lg shadow-yellow-500/20">
+                Avis Favorable
+            </button>
+        </div>
+        <button onclick="closeModal()" class="w-full mt-6 text-xs text-slate-500 hover:text-white transition-all underline underline-offset-4">Annuler</button>
+    </div>
+</div>
+
+<script>
+    // INITIALISATION DES VARIABLES
+    const token = localStorage.getItem('token');
+    let selectedDossierId = null;
+
+    // PROTECTION DE LA ROUTE
+    if(!token) window.location.href = '/login';
+
+    /**
+     * Charge les dossiers assignés au directeur connecté
+     */
+    async function loadDossiers() {
+        try {
+            const res = await fetch('/api/validation/directeur/mes-dossiers', { // Vérifie ton URL exacte
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            if (!res.ok) throw new Error("Erreur lors du chargement");
+
+            const dossiers = await res.json();
+            const container = document.getElementById('dossiers-container');
+            document.getElementById('count-badge').textContent = `${dossiers.length} Dossier(s)`;
+
+            container.innerHTML = '';
+
+            if(dossiers.length === 0) {
+                container.innerHTML = `
+                    <div class="glass-card p-20 text-center rounded-3xl border-dashed border-2">
+                        <span class="material-symbols-outlined text-5xl text-slate-700 mb-4">inbox</span>
+                        <h3 class="text-xl font-bold text-slate-400">Aucun dossier en attente</h3>
+                        <p class="text-sm text-slate-600 mt-1">Les nouvelles candidatures apparaîtront ici.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            dossiers.forEach(d => {
+                const dateModif = new Date(d.dateDerniereModification).toLocaleDateString('fr-FR');
+
+                container.innerHTML += `
+                    <div class="glass-card p-8 rounded-3xl border-l-4 border-yellow-500 hover:bg-white/[0.03] transition-all group">
+                        <div class="flex justify-between items-start gap-4 mb-6">
+                            <div>
+                                <div class="flex items-center gap-3 mb-2">
+                                    <span class="text-[9px] bg-yellow-500 text-[#010e24] px-2 py-0.5 rounded font-black tracking-tighter">EN ATTENTE D'AVIS</span>
+                                    <span class="text-xs text-slate-400 italic">Candidat : <b class="text-white text-sm not-italic ml-1">${d.candidat.prenom} ${d.candidat.nom}</b></span>
+                                </div>
+                                <h3 class="text-xl font-bold text-white leading-tight">${d.sujetThèse}</h3>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <button onclick="window.open('/api/files/${d.cvPath}')" title="Voir CV" class="p-3 bg-white/5 rounded-xl hover:bg-yellow-500 hover:text-[#010e24] transition-all flex flex-col items-center gap-1">
+                                    <span class="material-symbols-outlined text-xl">description</span>
+                                    <span class="text-[8px] font-bold uppercase">CV</span>
+                                </button>
+                                <button onclick="window.open('/api/files/${d.diplomePath}')" title="Voir Diplôme" class="p-3 bg-white/5 rounded-xl hover:bg-yellow-500 hover:text-[#010e24] transition-all flex flex-col items-center gap-1">
+                                    <span class="material-symbols-outlined text-xl">school</span>
+                                    <span class="text-[8px] font-bold uppercase">Bac+5</span>
+                                </button>
+                                <button onclick="window.open('/api/files/${d.lettreMotivationPath}')" title="Voir Lettre" class="p-3 bg-white/5 rounded-xl hover:bg-yellow-500 hover:text-[#010e24] transition-all flex flex-col items-center gap-1">
+                                    <span class="material-symbols-outlined text-xl">mail</span>
+                                    <span class="text-[8px] font-bold uppercase">Motivation</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 py-6 border-y border-white/5">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center"><span class="material-symbols-outlined text-yellow-500 text-sm">home_work</span></div>
+                                <div>
+                                    <p class="text-[9px] text-slate-500 uppercase font-black">Laboratoire</p>
+                                    <p class="text-sm font-semibold">${d.laboratoire || 'Non spécifié'}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center"><span class="material-symbols-outlined text-yellow-500 text-sm">handshake</span></div>
+                                <div>
+                                    <p class="text-[9px] text-slate-500 uppercase font-black">Coopération / Partenariat</p>
+                                    <p class="text-sm italic text-slate-300 truncate max-w-xs">${d.collaboration || 'Aucune collaboration.'}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] text-slate-500 font-mono">Reçu le ${dateModif}</span>
+                            <button onclick="openModal(${d.id})" class="bg-yellow-500 text-[#010e24] px-8 py-3 rounded-xl font-bold hover:scale-105 transition-all shadow-lg shadow-yellow-500/10">
+                                Évaluer la candidature
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        } catch (err) {
+            console.error(err);
+            document.getElementById('dossiers-container').innerHTML = '<p class="text-red-400 text-center">Erreur de connexion au serveur.</p>';
+        }
+    }
+
+    /**
+     * Ouvre la modale pour un dossier spécifique
+     */
+    function openModal(id) {
+        selectedDossierId = id;
+        document.getElementById('comm-directeur').value = '';
+        document.getElementById('modal-avis').classList.remove('hidden');
+    }
+
+    /**
+     * Ferme la modale
+     */
+    function closeModal() {
+        document.getElementById('modal-avis').classList.add('hidden');
+    }
+
+    /**
+     * Envoie la décision finale à l'API backend
+     */
+    async function validerAvis(favorable) {
+        const comm = document.getElementById('comm-directeur').value;
+
+        try {
+            const res = await fetch(`/api/validation/directeur/${selectedDossierId}/avis`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    valide: favorable,
+                    commentaires: comm
+                })
+            });
+
+            if(res.ok) {
+                closeModal();
+                loadDossiers(); // Recharge la liste
+            } else {
+                alert("Erreur lors de l'enregistrement.");
+            }
+        } catch (err) {
+            alert("Erreur réseau.");
+        }
+    }
+
+    /**
+     * Déconnexion
+     */
+    function logout() {
+        localStorage.clear();
+        window.location.href = '/login';
+    }
+
+    // CHARGEMENT INITIAL
+    loadDossiers();
+</script>
+</body>
+</html>

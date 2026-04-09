@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html class="dark" lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Inscription Doctorat - Fiducia</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <style>
+        body { background-color: #041329; color: #d6e3ff; font-family: 'Manrope', sans-serif; }
+        .sidebar-item-active { border-left: 4px solid #e9c176; background: rgba(255,255,255,0.05); color: #e9c176; font-weight: bold; }
+        input[type="file"]::file-selector-button {
+            background-color: rgba(233, 193, 118, 0.1);
+            color: #e9c176;
+            border: 1px solid rgba(233, 193, 118, 0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 15px;
+            transition: all 0.2s;
+        }
+    </style>
+</head>
+<body class="flex">
+
+<aside class="fixed left-0 top-0 h-screen w-64 bg-[#010e24] border-r border-white/5 flex flex-col py-8 z-50">
+    <div class="px-6 mb-10">
+        <h1 class="text-2xl font-bold text-primary italic">Fiducia</h1>
+        <p class="text-[10px] text-slate-500 uppercase tracking-widest">Espace Candidat</p>
+    </div>
+
+    <nav class="flex-1 space-y-1">
+        <a href="/candidat/dashboard" class="w-full flex items-center gap-3 px-6 py-4 text-sm transition-all hover:bg-white/5 text-slate-400">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span>Mon Suivi</span>
+        </a>
+        <a href="/candidat/soumission" class="sidebar-item-active w-full flex items-center gap-3 px-6 py-4 text-sm transition-all">
+            <span class="material-symbols-outlined">add_circle</span>
+            <span>Inscription</span>
+        </a>
+        <a href="/profile" class="w-full flex items-center gap-3 px-6 py-4 text-slate-400 hover:bg-white/5 transition-all text-sm group">
+            <span class="material-symbols-outlined group-hover:text-primary">account_circle</span>
+            <span>Mon Profil</span>
+        </a>
+    </nav>
+
+    <div class="px-6 pt-6 border-t border-white/5">
+        <button onclick="localStorage.clear(); window.location.href='/login'" class="w-full flex items-center gap-3 text-red-400 hover:text-red-300 transition-all text-sm">
+            <span class="material-symbols-outlined">logout</span>
+            <span>Déconnexion</span>
+        </button>
+    </div>
+</aside>
+
+<main class="ml-64 flex-1 p-8 md:p-12">
+    <header class="mb-10">
+        <h2 class="text-3xl font-bold">Nouvelle <span class="text-primary italic">Candidature</span></h2>
+        <p class="text-slate-400 mt-2">Complétez votre dossier de recherche et joignez vos documents (PDF uniquement).</p>
+    </header>
+
+    <div id="formContainer" class="bg-[#112036] rounded-3xl border border-white/5 shadow-2xl overflow-hidden max-w-4xl">
+        <form id="soumissionForm" class="p-8 space-y-8">
+
+            <div class="space-y-6">
+                <h3 class="text-primary text-[10px] font-black uppercase tracking-[0.2em] border-b border-white/5 pb-2">1. Projet de Recherche</h3>
+
+                <div class="space-y-2">
+                    <label class="text-sm font-medium px-1">Sujet de thèse</label>
+                    <input type="text" name="sujet" required placeholder="Ex: Analyse prédictive des fraudes par Deep Learning"
+                           class="w-full bg-[#041329] border-white/10 rounded-xl focus:ring-primary focus:border-primary text-sm text-white">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium px-1">Laboratoire d'accueil</label>
+                        <input type="text" name="laboratoire" required placeholder="Ex: SMART-LAB"
+                               class="w-full bg-[#041329] border-white/10 rounded-xl focus:ring-primary focus:border-primary text-sm text-white">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium px-1">Directeur de thèse</label>
+                        <select name="directeurId" id="directeurSelect" required
+                                class="w-full bg-[#041329] border-white/10 rounded-xl focus:ring-primary focus:border-primary text-sm text-white">
+                            <option value="">Chargement des professeurs...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-sm font-medium px-1">Co-encadrement / Collaboration</label>
+                    <input type="text" name="collaboration" placeholder="Ex: Co-encadrement avec l'UM6P et ENSIAS"
+                           class="w-full bg-[#041329] border-white/10 rounded-xl focus:ring-primary focus:border-primary text-sm text-white">
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <h3 class="text-primary text-[10px] font-black uppercase tracking-[0.2em] border-b border-white/5 pb-2">2. Documents requis</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="p-4 bg-white/5 rounded-xl border border-white/5 space-y-3">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase">Curriculum Vitae</label>
+                        <input type="file" name="cv" accept=".pdf" required class="w-full text-xs text-slate-400">
+                    </div>
+
+                    <div class="p-4 bg-white/5 rounded-xl border border-white/5 space-y-3">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase">Dernier Diplôme</label>
+                        <input type="file" name="diplome" accept=".pdf" required class="w-full text-xs text-slate-400">
+                    </div>
+
+                    <div class="md:col-span-2 p-4 bg-white/5 rounded-xl border border-white/5 space-y-3">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase">Lettre de Motivation</label>
+                        <input type="file" name="lettre" accept=".pdf" required class="w-full text-xs text-slate-400">
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4">
+                <button type="submit" id="submitBtn" class="w-full py-4 bg-primary text-[#412d00] font-black rounded-xl hover:scale-[1.01] transition-all shadow-lg flex items-center justify-center gap-3 uppercase tracking-widest text-xs">
+                    <span class="material-symbols-outlined">cloud_upload</span>
+                    Soumettre mon dossier
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/login';
+
+    async function init() {
+        await checkExistingDossier();
+        await loadDirecteurs();
+    }
+
+    async function checkExistingDossier() {
+        try {
+            const res = await fetch('/api/candidat/mon-statut', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const text = await res.text();
+            try {
+                const dossier = JSON.parse(text);
+                if (dossier && dossier.id) window.location.href = '/candidat/dashboard';
+            } catch(e) { /* Pas de dossier, on reste ici */ }
+        } catch (err) { console.error(err); }
+    }
+
+    async function loadDirecteurs() {
+        const select = document.getElementById('directeurSelect');
+        try {
+            const res = await fetch('/api/candidat/directeurs', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const directeurs = await res.json();
+            select.innerHTML = '<option value="">Sélectionnez un professeur</option>';
+            directeurs.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.id;
+                opt.textContent = `Pr. ${d.nom} ${d.prenom} (${d.specialite || 'HDR'})`;
+                select.appendChild(opt);
+            });
+        } catch (err) { select.innerHTML = '<option>Erreur de chargement</option>'; }
+    }
+
+    document.getElementById('soumissionForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="animate-spin material-symbols-outlined">sync</span> Upload en cours...';
+
+        const formData = new FormData(e.target);
+        try {
+            const res = await fetch('/api/candidat/soumettre-dossier', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token },
+                body: formData
+            });
+
+            if (res.ok) {
+                btn.className = "w-full py-4 bg-green-500 text-white font-black rounded-xl transition-all";
+                btn.innerHTML = "Dossier envoyé avec succès !";
+                setTimeout(() => window.location.href = '/candidat/dashboard', 1500);
+            } else {
+                const err = await res.text();
+                alert("Erreur : " + err);
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-outlined">send</span> Réessayer';
+            }
+        } catch (err) { alert("Erreur serveur"); btn.disabled = false; }
+    };
+
+    init();
+</script>
+</body>
+</html>

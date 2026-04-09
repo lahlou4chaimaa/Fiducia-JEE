@@ -13,6 +13,7 @@ import com.example.fiducia.services.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,6 +50,7 @@ public class AuthController {
     }
     // 2. Inscription pour les DIRECTEURS (Sera protégé par ROLE_ADMIN plus tard)
     @PostMapping("/register-directeur")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> registerDirecteur(@RequestBody DirecteurThese directeur) {
         if (userRepository.existsByEmail(directeur.getEmail())) {
             return ResponseEntity.badRequest().body("Email déjà utilisé");
@@ -59,6 +61,7 @@ public class AuthController {
 
     // 3. Inscription pour le PERSONNEL ADMINISTRATIF
     @PostMapping("/register-admin")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> registerAdmin(@RequestBody PersonnelAdministratif admin) {
         if (userRepository.existsByEmail(admin.getEmail())) {
             return ResponseEntity.badRequest().body("Email déjà utilisé");

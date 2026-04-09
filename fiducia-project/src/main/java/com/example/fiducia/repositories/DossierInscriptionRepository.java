@@ -14,4 +14,5 @@ public interface DossierInscriptionRepository extends JpaRepository<DossierInscr
     // Change String statut en StatutDossier statut
     List<DossierInscription> findByDirecteurTheseAndStatut(DirecteurThese directeur, StatutDossier statut);
     List<DossierInscription> findByStatut(StatutDossier statut);
+    List<DossierInscription> findByDirecteurTheseEmailAndStatut(String email, StatutDossier statut);
 }

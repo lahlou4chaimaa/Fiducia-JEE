@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html class="dark" lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <title>Mon Suivi - Fiducia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <style>
+        body { background-color: #041329; color: #d6e3ff; font-family: 'Manrope', sans-serif; }
+        .sidebar-item-active { border-left: 4px solid #e9c176; background: rgba(255,255,255,0.05); color: #e9c176; font-weight: bold; }
+        .glass-card { background: rgba(17, 32, 54, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
+    </style>
+</head>
+<body class="flex min-h-screen">
+
+<aside class="fixed left-0 top-0 h-screen w-64 bg-[#010e24] border-r border-white/5 flex flex-col py-8 z-50">
+    <div class="px-6 mb-10">
+        <h1 class="text-2xl font-bold text-primary italic">Fiducia</h1>
+        <p class="text-[10px] text-slate-500 uppercase tracking-widest">Espace Candidat</p>
+    </div>
+    <nav class="flex-1 space-y-1">
+        <a href="/candidat/dashboard" id="nav-dashboard" class="sidebar-item-active w-full flex items-center gap-3 px-6 py-4 text-sm transition-all">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span>Mon Suivi</span>
+        </a>
+
+        <a href="/candidat/soumission" id="nav-soumission" class="hidden w-full flex items-center gap-3 px-6 py-4 text-sm transition-all hover:bg-white/5 text-slate-400 group">
+            <span class="material-symbols-outlined group-hover:text-primary">cloud_upload</span>
+            <span class="group-hover:text-primary">Déposer mon dossier</span>
+        </a>
+
+        <a href="/profile" class="w-full flex items-center gap-3 px-6 py-4 text-slate-400 hover:bg-white/5 transition-all text-sm group">
+            <span class="material-symbols-outlined group-hover:text-primary">account_circle</span>
+            <span>Mon Profil</span>
+        </a>
+    </nav>
+    <div class="px-6 pt-6 border-t border-white/5">
+        <button onclick="localStorage.clear(); window.location.href='/login'" class="w-full flex items-center gap-3 text-red-400 hover:text-red-300 transition-all text-sm">
+            <span class="material-symbols-outlined">logout</span>
+            <span>Déconnexion</span>
+        </button>
+    </div>
+</aside>
+
+<main class="ml-64 flex-1 p-8 md:p-12">
+    <header class="mb-12 flex justify-between items-end">
+        <div>
+            <h2 class="text-3xl font-bold">Tableau de bord, <span id="userNameHeader" class="text-primary">...</span></h2>
+            <p id="detail-message-etape" class="text-slate-400 mt-1 italic">Chargement de votre statut...</p>
+        </div>
+        <div id="status-badge" class="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/5 border border-white/10">
+            STATUT
+        </div>
+    </header>
+
+    <div id="no-dossier" class="hidden glass-card p-16 rounded-3xl border-dashed text-center">
+        <span class="material-symbols-outlined text-6xl text-slate-700 mb-4">folder_open</span>
+        <h3 class="text-xl font-bold">Aucune candidature active</h3>
+        <p class="text-slate-500 mb-8">Commencez votre parcours doctoral en soumettant votre dossier.</p>
+        <a href="/candidat/soumission" class="bg-primary text-on-primary px-8 py-3 rounded-xl font-bold hover:scale-105 transition-all">S'inscrire maintenant</a>
+    </div>
+
+    <div id="dossier-status" class="hidden space-y-8">
+
+        <div class="glass-card p-10 rounded-3xl relative overflow-hidden">
+            <div class="relative flex justify-between items-center w-full max-w-3xl mx-auto z-10">
+                <div class="absolute h-0.5 bg-white/10 w-full top-5 -z-10"></div>
+                <div id="progress-bar" class="absolute h-0.5 bg-primary w-0 top-5 -z-10 transition-all duration-1000 shadow-[0_0_15px_#e9c176]"></div>
+
+                <div class="flex flex-col items-center gap-2">
+                    <div id="dot-1" class="w-10 h-10 rounded-full bg-[#112036] border-2 border-white/10 flex items-center justify-center transition-all"><span class="material-symbols-outlined text-sm">send</span></div>
+                    <span class="text-[9px] font-bold uppercase tracking-widest">Soumis</span>
+                </div>
+                <div class="flex flex-col items-center gap-2">
+                    <div id="dot-2" class="w-10 h-10 rounded-full bg-[#112036] border-2 border-white/10 flex items-center justify-center transition-all"><span class="material-symbols-outlined text-sm">fact_check</span></div>
+                    <span class="text-[9px] font-bold uppercase tracking-widest">Avis Directeur</span>
+                </div>
+                <div class="flex flex-col items-center gap-2">
+                    <div id="dot-3" class="w-10 h-10 rounded-full bg-[#112036] border-2 border-white/10 flex items-center justify-center transition-all"><span class="material-symbols-outlined text-sm">verified</span></div>
+                    <span class="text-[9px] font-bold uppercase tracking-widest">Validation</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-8">
+                <div class="glass-card p-8 rounded-2xl">
+                    <div class="flex justify-between items-start mb-6">
+                        <label class="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Détails du sujet</label>
+                        <span id="detail-date-modif" class="text-[10px] text-slate-500 font-mono"></span>
+                    </div>
+                    <h3 id="detail-sujet" class="text-2xl font-bold leading-snug mb-8">-</h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-white/5 pt-8">
+                        <div class="flex items-start gap-4">
+                            <div class="p-3 bg-primary/10 rounded-lg"><span class="material-symbols-outlined text-primary">person</span></div>
+                            <div>
+                                <p class="text-[10px] text-slate-500 uppercase font-bold">Directeur de thèse</p>
+                                <p id="detail-directeur" class="font-bold text-on-surface">-</p>
+                                <p id="detail-avis-directeur" class="text-[11px] mt-1"></p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="p-3 bg-primary/10 rounded-lg"><span class="material-symbols-outlined text-primary">account_balance</span></div>
+                            <div>
+                                <p class="text-[10px] text-slate-500 uppercase font-bold">Laboratoire</p>
+                                <p id="detail-labo" class="font-bold text-on-surface">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl border-l-4 border-primary">
+                    <p class="text-[10px] text-primary uppercase font-black mb-2 tracking-widest">Collaboration & Partenariats</p>
+                    <p id="detail-collaboration" class="text-sm text-slate-300 italic">-</p>
+                </div>
+            </div>
+
+            <div class="space-y-8">
+                <div class="glass-card p-8 rounded-2xl">
+                    <label class="text-[10px] font-black text-primary uppercase tracking-[0.2em] block mb-6">Pièces Jointes</label>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 bg-white/5 rounded-xl">
+                            <span class="text-xs">Curriculum Vitae</span>
+                            <span class="material-symbols-outlined text-green-400 text-sm">check_circle</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white/5 rounded-xl">
+                            <span class="text-xs">Diplôme Master/Ingé</span>
+                            <span class="material-symbols-outlined text-green-400 text-sm">check_circle</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white/5 rounded-xl">
+                            <span class="text-xs">Lettre de Motivation</span>
+                            <span class="material-symbols-outlined text-green-400 text-sm">check_circle</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="admin-feedback" class="hidden p-6 rounded-2xl bg-primary text-on-primary">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="material-symbols-outlined text-sm">info</span>
+                        <span class="text-[10px] font-black uppercase tracking-widest">Note Administration</span>
+                    </div>
+                    <p id="detail-remarques" class="text-xs font-bold leading-relaxed"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    const token = localStorage.getItem('token');
+    if(!token) window.location.href = '/login';
+
+    async function initDashboard() {
+        try {
+            // 1. Récupérer les infos utilisateur
+            const resMe = await fetch('/api/auth/me/profile', { headers: { 'Authorization': 'Bearer ' + token } });
+            const me = await resMe.json();
+            document.getElementById('userNameHeader').textContent = me.prenom;
+
+            // 2. Récupérer le dossier complet (mon-statut)
+            const resStatut = await fetch('/api/candidat/mon-statut', { headers: { 'Authorization': 'Bearer ' + token } });
+            const text = await resStatut.text();
+            const navSoumission = document.getElementById('nav-soumission');
+
+            if (text.includes("Aucun dossier")) {
+                // Le candidat n'a rien déposé : on montre le lien dans la sidebar
+                document.getElementById('no-dossier').classList.remove('hidden');
+                navSoumission.classList.remove('hidden');
+            } else {
+                // Le dossier existe : on cache le lien de dépôt pour ne laisser que le suivi
+                document.getElementById('dossier-status').classList.remove('hidden');
+                navSoumission.classList.add('hidden');
+            }
+
+            const dossier = JSON.parse(text);
+            document.getElementById('dossier-status').classList.remove('hidden');
+            document.getElementById('nav-soumission').classList.add('hidden');
+
+            // Mapping des données
+            document.getElementById('status-badge').textContent = dossier.statut;
+            document.getElementById('detail-sujet').textContent = dossier.sujetThèse;
+            document.getElementById('detail-labo').textContent = dossier.laboratoire || "Non spécifié";
+            document.getElementById('detail-directeur').textContent = `Pr. ${dossier.directeurThese.prenom} ${dossier.directeurThese.nom}`;
+            document.getElementById('detail-collaboration').textContent = dossier.collaboration || "Aucune collaboration particulière.";
+
+            // Dates
+            const dateModif = new Date(dossier.dateDerniereModification);
+            document.getElementById('detail-date-modif').textContent = "Mis à jour le " + dateModif.toLocaleDateString('fr-FR');
+
+            // Avis Directeur
+            const avisEl = document.getElementById('detail-avis-directeur');
+            if(dossier.avisDirecteur === 'FAVORABLE') {
+                avisEl.innerHTML = '<span class="text-green-400">● Avis Favorable</span>';
+            } else if(dossier.avisDirecteur === 'DEFAVORABLE') {
+                avisEl.innerHTML = '<span class="text-red-400">● Avis Défavorable</span>';
+            } else {
+                avisEl.innerHTML = '<span class="text-slate-500">○ En attente d\'avis</span>';
+            }
+
+            // Remarques Admin
+            if(dossier.remarquesAdmin) {
+                document.getElementById('admin-feedback').classList.remove('hidden');
+                document.getElementById('detail-remarques').textContent = dossier.remarquesAdmin;
+            }
+
+            // 3. Récupérer le DTO de suivi (mon-suivi) pour le message d'étape
+            const resSuivi = await fetch('/api/candidat/mon-suivi', { headers: { 'Authorization': 'Bearer ' + token } });
+            const suivi = await resSuivi.json();
+            document.getElementById('detail-message-etape').textContent = suivi.messageEtape;
+
+            // Gestion Barre de Progression
+            updateProgressBar(dossier.statut);
+
+        } catch (err) {
+            console.error("Erreur chargement dashboard:", err);
+            document.getElementById('no-dossier').classList.remove('hidden');
+        }
+    }
+
+    function updateProgressBar(statut) {
+        let percent = 0;
+        const steps = [false, false, false];
+
+        if (statut === 'SOUMIS' || statut === 'EN_ATTENTE_DIRECTEUR') {
+            percent = 15; steps[0] = true;
+        } else if (statut === 'VALIDE_PAR_DIRECTEUR' || statut === 'EN_ATTENTE_ADMIN') {
+            percent = 50; steps[0] = true; steps[1] = true;
+        } else if (statut === 'VALIDE') {
+            percent = 100; steps[0] = true; steps[1] = true; steps[2] = true;
+            document.getElementById('status-badge').className = "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-green-500/20 text-green-400 border border-green-500/20";
+        }
+
+        document.getElementById('progress-bar').style.width = percent + '%';
+        steps.forEach((active, i) => {
+            if(active) {
+                const dot = document.getElementById(`dot-${i+1}`);
+                dot.classList.add('border-primary', 'text-primary');
+                dot.classList.remove('border-white/10');
+            }
+        });
+    }
+
+    initDashboard();
+</script>
+</body>
+</html>

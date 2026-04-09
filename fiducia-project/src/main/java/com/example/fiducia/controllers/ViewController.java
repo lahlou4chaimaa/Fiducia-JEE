@@ -42,6 +42,23 @@ public class ViewController {
         return "admin/dashboard";
 
     }
+    @GetMapping("/profile")
+    public String profilePage() {
+        return "profil"; // correspond à profil.html dans templates
+    }
+    @GetMapping("/candidat/dashboard")
+    public String candidatDashboard() {
+        return "candidat/dashboard"; // templates/candidat/dashboard.html
+    }
+    @GetMapping("/directeur/dashboard")
+    public String directeurDashboard() {
+        return "directeur/dashboard";
+    }
+
+    @GetMapping("/candidat/soumission")
+    public String soumissionPage() {
+        return "candidat/soumission"; // templates/candidat/soumission.html
+    }
 
     @GetMapping("/")
     public String index() {

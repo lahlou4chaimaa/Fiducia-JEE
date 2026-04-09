@@ -80,4 +80,18 @@ public class ValidationController {
         String message = request.isValide() ? "Inscription validée avec succès." : "Dossier refusé par l'administration.";
         return ResponseEntity.ok(message);
     }
+    // Charger les dossiers qui attendent l'avis de CE directeur
+    @PreAuthorize("hasRole('DIRECTEUR')")
+    @GetMapping("/directeur/mes-dossiers")
+    public ResponseEntity<?> getMesDossiers(java.security.Principal principal) {
+        // On récupère l'email du directeur connecté (via le token JWT)
+        String emailDirecteur = principal.getName();
+
+        // On cherche les dossiers dont le statut est EN_ATTENTE_DIRECTEUR
+        // ET qui appartiennent à ce directeur spécifique
+        return ResponseEntity.ok(dossierRepo.findByDirecteurTheseEmailAndStatut(
+                emailDirecteur,
+                StatutDossier.EN_ATTENTE_DIRECTEUR
+        ));
+    }
 }
