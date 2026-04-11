@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="dark" lang="fr">
+<html class="dark" lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -8,8 +8,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <style>
-        body { background-color: #041329; color: #d6e3ff; font-family: 'Manrope', sans-serif; }
+        body {
+            background-color: #041329;
+            color: #d6e3ff;
+            font-family: 'Manrope', sans-serif;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+        }
         .sidebar-item-active { border-left: 4px solid #e9c176; background: rgba(255,255,255,0.05); color: #e9c176; font-weight: bold; }
+
         input[type="file"]::file-selector-button {
             background-color: rgba(233, 193, 118, 0.1);
             color: #e9c176;
@@ -20,33 +26,46 @@
             margin-right: 15px;
             transition: all 0.2s;
         }
+        input[type="file"]::file-selector-button:hover {
+            background-color: rgba(233, 193, 118, 0.2);
+        }
+        .custom-loader { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; }
     </style>
 </head>
 <body class="flex">
 
 <aside class="fixed left-0 top-0 h-screen w-64 bg-[#010e24] border-r border-white/5 flex flex-col py-8 z-50">
     <div class="px-6 mb-10">
-        <h1 class="text-2xl font-bold text-primary italic">Fiducia</h1>
+        <h1 class="text-2xl font-bold text-[#e9c176] italic font-serif">Fiducia</h1>
         <p class="text-[10px] text-slate-500 uppercase tracking-widest">Espace Candidat</p>
     </div>
 
     <nav class="flex-1 space-y-1">
-        <a href="/candidat/dashboard" class="w-full flex items-center gap-3 px-6 py-4 text-sm transition-all hover:bg-white/5 text-slate-400">
-            <span class="material-symbols-outlined">dashboard</span>
+        <a href="/candidat/dashboard" class="w-full flex items-center gap-3 px-6 py-4 text-sm transition-all hover:bg-white/5 text-slate-400 group">
+            <span class="material-symbols-outlined group-hover:text-[#e9c176]">dashboard</span>
             <span>Mon Suivi</span>
         </a>
         <a href="/candidat/soumission" class="sidebar-item-active w-full flex items-center gap-3 px-6 py-4 text-sm transition-all">
             <span class="material-symbols-outlined">add_circle</span>
             <span>Inscription</span>
         </a>
-        <a href="/profile" class="w-full flex items-center gap-3 px-6 py-4 text-slate-400 hover:bg-white/5 transition-all text-sm group">
-            <span class="material-symbols-outlined group-hover:text-primary">account_circle</span>
-            <span>Mon Profil</span>
-        </a>
     </nav>
 
-    <div class="px-6 pt-6 border-t border-white/5">
-        <button onclick="localStorage.clear(); window.location.href='/login'" class="w-full flex items-center gap-3 text-red-400 hover:text-red-300 transition-all text-sm">
+    <div class="px-4 mt-auto pt-6 border-t border-white/5 mb-4">
+        <a href="/profile" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#112036] text-[#d6e3ff] hover:bg-[#2c3951] transition-all group border border-white/5">
+            <div class="h-8 w-8 rounded-full bg-[#e9c176]/20 flex items-center justify-center border border-[#e9c176]/30">
+                <span class="material-symbols-outlined text-[#e9c176] text-sm">person</span>
+            </div>
+            <div class="flex flex-col">
+                <span class="text-xs font-bold">Mon Profil</span>
+                <span class="text-[10px] text-slate-500 uppercase tracking-tighter">Candidat</span>
+            </div>
+            <span class="material-symbols-outlined text-slate-600 ml-auto text-sm group-hover:translate-x-1 transition-transform">chevron_right</span>
+        </a>
+    </div>
+
+    <div class="px-6 pt-4">
+        <button onclick="localStorage.clear(); window.location.href='/login'" class="w-full flex items-center gap-3 text-red-400 hover:text-red-300 transition-all text-sm font-bold">
             <span class="material-symbols-outlined">logout</span>
             <span>Déconnexion</span>
         </button>
@@ -55,82 +74,110 @@
 
 <main class="ml-64 flex-1 p-8 md:p-12">
     <header class="mb-10">
-        <h2 class="text-3xl font-bold">Nouvelle <span class="text-primary italic">Candidature</span></h2>
+        <h2 class="text-4xl font-bold text-on-surface tracking-tight">Nouvelle <span class="text-[#e9c176] italic">Candidature</span></h2>
         <p class="text-slate-400 mt-2">Complétez votre dossier de recherche et joignez vos documents (PDF uniquement).</p>
     </header>
 
-    <div id="formContainer" class="bg-[#112036] rounded-3xl border border-white/5 shadow-2xl overflow-hidden max-w-4xl">
+    <div id="loadingState" class="custom-loader">
+        <span class="material-symbols-outlined animate-spin text-4xl text-[#e9c176]">sync</span>
+        <p class="mt-4 text-slate-500 italic">Vérification de votre dossier...</p>
+    </div>
+
+    <div id="formContainer" style="display: none;" class="bg-[#112036] rounded-3xl border border-white/5 shadow-2xl overflow-hidden max-w-4xl">
         <form id="soumissionForm" class="p-8 space-y-8">
 
             <div class="space-y-6">
-                <h3 class="text-primary text-[10px] font-black uppercase tracking-[0.2em] border-b border-white/5 pb-2">1. Projet de Recherche</h3>
+                <h3 class="text-[#e9c176] text-[10px] font-black uppercase tracking-[0.2em] border-b border-white/5 pb-2">1. Projet de Recherche</h3>
 
                 <div class="space-y-2">
-                    <label class="text-sm font-medium px-1">Sujet de thèse</label>
+                    <label class="text-sm font-medium px-1 text-slate-300">Sujet de thèse</label>
                     <input type="text" name="sujet" required placeholder="Ex: Analyse prédictive des fraudes par Deep Learning"
-                           class="w-full bg-[#041329] border-white/10 rounded-xl focus:ring-primary focus:border-primary text-sm text-white">
+                           class="w-full bg-[#041329] border-white/10 rounded-xl focus:ring-[#e9c176] focus:border-[#e9c176] text-sm text-white py-3">
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-2">
-                        <label class="text-sm font-medium px-1">Laboratoire d'accueil</label>
-                        <input type="text" name="laboratoire" required placeholder="Ex: SMART-LAB"
-                               class="w-full bg-[#041329] border-white/10 rounded-xl focus:ring-primary focus:border-primary text-sm text-white">
+                        <label class="text-sm font-medium px-1 text-slate-300">Session d'inscription</label>
+                        <select name="campagneId" required
+                                class="w-full bg-[#041329] border-white/10 rounded-xl focus:ring-[#e9c176] focus:border-[#e9c176] text-sm text-white h-[46px]">
+                            <option value="" disabled selected>-- Choisir une session --</option>
+                            <option th:each="c : ${activeCampagnes}" th:value="${c.id}" th:text="${c.libelle}"></option>
+                        </select>
                     </div>
                     <div class="space-y-2">
-                        <label class="text-sm font-medium px-1">Directeur de thèse</label>
+                        <label class="text-sm font-medium px-1 text-slate-300">Directeur de thèse</label>
                         <select name="directeurId" id="directeurSelect" required
-                                class="w-full bg-[#041329] border-white/10 rounded-xl focus:ring-primary focus:border-primary text-sm text-white">
-                            <option value="">Chargement des professeurs...</option>
+                                class="w-full bg-[#041329] border-white/10 rounded-xl focus:ring-[#e9c176] focus:border-[#e9c176] text-sm text-white h-[46px]">
+                            <option value="">Chargement...</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="space-y-2">
-                    <label class="text-sm font-medium px-1">Co-encadrement / Collaboration</label>
-                    <input type="text" name="collaboration" placeholder="Ex: Co-encadrement avec l'UM6P et ENSIAS"
-                           class="w-full bg-[#041329] border-white/10 rounded-xl focus:ring-primary focus:border-primary text-sm text-white">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium px-1 text-slate-300">Laboratoire d'accueil</label>
+                        <input type="text" name="laboratoire" required placeholder="Ex: SMART-LAB"
+                               class="w-full bg-[#041329] border-white/10 rounded-xl focus:ring-[#e9c176] focus:border-[#e9c176] text-sm text-white">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium px-1 text-slate-300">Co-encadrement (Optionnel)</label>
+                        <input type="text" name="collaboration" placeholder="Ex: UM6P / Co-tutelle"
+                               class="w-full bg-[#041329] border-white/10 rounded-xl focus:ring-[#e9c176] focus:border-[#e9c176] text-sm text-white">
+                    </div>
                 </div>
             </div>
 
             <div class="space-y-6">
-                <h3 class="text-primary text-[10px] font-black uppercase tracking-[0.2em] border-b border-white/5 pb-2">2. Documents requis</h3>
+                <h3 class="text-[#e9c176] text-[10px] font-black uppercase tracking-[0.2em] border-b border-white/5 pb-2">2. Documents requis (PDF)</h3>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="p-4 bg-white/5 rounded-xl border border-white/5 space-y-3">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase">Curriculum Vitae</label>
+                    <div class="p-5 bg-white/5 rounded-2xl border border-white/5 space-y-3">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm">description</span> CV Actualisé
+                        </label>
                         <input type="file" name="cv" accept=".pdf" required class="w-full text-xs text-slate-400">
                     </div>
 
-                    <div class="p-4 bg-white/5 rounded-xl border border-white/5 space-y-3">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase">Dernier Diplôme</label>
+                    <div class="p-5 bg-white/5 rounded-2xl border border-white/5 space-y-3">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm">school</span> Dernier Diplôme
+                        </label>
                         <input type="file" name="diplome" accept=".pdf" required class="w-full text-xs text-slate-400">
                     </div>
 
-                    <div class="md:col-span-2 p-4 bg-white/5 rounded-xl border border-white/5 space-y-3">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase">Lettre de Motivation</label>
+                    <div class="md:col-span-2 p-5 bg-white/5 rounded-2xl border border-white/5 space-y-3">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm">history_edu</span> Lettre de Motivation & Projet
+                        </label>
                         <input type="file" name="lettre" accept=".pdf" required class="w-full text-xs text-slate-400">
                     </div>
                 </div>
             </div>
 
-            <div class="pt-4">
-                <button type="submit" id="submitBtn" class="w-full py-4 bg-primary text-[#412d00] font-black rounded-xl hover:scale-[1.01] transition-all shadow-lg flex items-center justify-center gap-3 uppercase tracking-widest text-xs">
+            <div class="pt-6">
+                <button type="submit" id="submitBtn" class="w-full py-4 bg-[#e9c176] text-[#412d00] font-black rounded-xl hover:scale-[1.01] active:scale-95 transition-all shadow-xl flex items-center justify-center gap-3 uppercase tracking-[0.15em] text-xs">
                     <span class="material-symbols-outlined">cloud_upload</span>
-                    Soumettre mon dossier
+                    Soumettre mon dossier définitif
                 </button>
             </div>
         </form>
     </div>
 </main>
 
-<script>
+<script th:inline="javascript">
     const token = localStorage.getItem('token');
     if (!token) window.location.href = '/login';
 
     async function init() {
-        await checkExistingDossier();
-        await loadDirecteurs();
+        // 1. Vérifier si un dossier existe déjà
+        const hasDossier = await checkExistingDossier();
+
+        if (!hasDossier) {
+            // 2. Si pas de dossier, on affiche le formulaire
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('formContainer').style.display = 'block';
+            await loadDirecteurs();
+        }
     }
 
     async function checkExistingDossier() {
@@ -138,12 +185,18 @@
             const res = await fetch('/api/candidat/mon-statut', {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
-            const text = await res.text();
-            try {
-                const dossier = JSON.parse(text);
-                if (dossier && dossier.id) window.location.href = '/candidat/dashboard';
-            } catch(e) { /* Pas de dossier, on reste ici */ }
-        } catch (err) { console.error(err); }
+            if (res.ok) {
+                const dossier = await res.json();
+                if (dossier && dossier.id) {
+                    window.location.href = '/candidat/dashboard';
+                    return true;
+                }
+            }
+            return false;
+        } catch (err) {
+            console.error("Erreur check statut:", err);
+            return false;
+        }
     }
 
     async function loadDirecteurs() {
@@ -153,21 +206,23 @@
                 headers: { 'Authorization': 'Bearer ' + token }
             });
             const directeurs = await res.json();
-            select.innerHTML = '<option value="">Sélectionnez un professeur</option>';
+            select.innerHTML = '<option value="" disabled selected>Sélectionnez un professeur</option>';
             directeurs.forEach(d => {
                 const opt = document.createElement('option');
                 opt.value = d.id;
                 opt.textContent = `Pr. ${d.nom} ${d.prenom} (${d.specialite || 'HDR'})`;
                 select.appendChild(opt);
             });
-        } catch (err) { select.innerHTML = '<option>Erreur de chargement</option>'; }
+        } catch (err) {
+            select.innerHTML = '<option>Erreur de chargement</option>';
+        }
     }
 
     document.getElementById('soumissionForm').onsubmit = async (e) => {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
         btn.disabled = true;
-        btn.innerHTML = '<span class="animate-spin material-symbols-outlined">sync</span> Upload en cours...';
+        btn.innerHTML = '<span class="animate-spin material-symbols-outlined">sync</span> Transfert en cours...';
 
         const formData = new FormData(e.target);
         try {
@@ -179,17 +234,21 @@
 
             if (res.ok) {
                 btn.className = "w-full py-4 bg-green-500 text-white font-black rounded-xl transition-all";
-                btn.innerHTML = "Dossier envoyé avec succès !";
+                btn.innerHTML = "Dossier transmis avec succès !";
                 setTimeout(() => window.location.href = '/candidat/dashboard', 1500);
             } else {
                 const err = await res.text();
-                alert("Erreur : " + err);
+                alert("Erreur lors de l'envoi : " + err);
                 btn.disabled = false;
-                btn.innerHTML = '<span class="material-symbols-outlined">send</span> Réessayer';
+                btn.innerHTML = '<span class="material-symbols-outlined">cloud_upload</span> Réessayer';
             }
-        } catch (err) { alert("Erreur serveur"); btn.disabled = false; }
+        } catch (err) {
+            alert("Erreur serveur");
+            btn.disabled = false;
+        }
     };
 
+    // Lancement au chargement
     init();
 </script>
 </body>

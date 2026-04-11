@@ -133,6 +133,16 @@
                 renderField(container, "Grade", "profGrade", user.grade);
                 renderField(container, "Spécialité", "profSpecialite", user.specialite);
                 renderField(container, "Laboratoire", "profLaboratoire", user.laboratoire, true);
+
+                // Ajout manuel du HDR car c'est un checkbox, pas un texte
+                const hdrDiv = document.createElement('div');
+                hdrDiv.className = "md:col-span-2 flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-white/5";
+                hdrDiv.innerHTML = `
+        <input type="checkbox" id="profHdr" ${user.habilitéDirigerRecherche ? 'checked' : ''}
+               class="w-5 h-5 rounded border-white/10 bg-background text-primary focus:ring-primary">
+        <label for="profHdr" class="text-sm font-bold text-slate-300">Habilité à Diriger des Recherches (HDR)</label>
+    `;
+                container.appendChild(hdrDiv);
             }
             else if ("service" in user) { // C'est un Administratif
                 renderField(container, "Service", "profService", user.service);
@@ -175,6 +185,9 @@
         if(document.getElementById('profService')) updates.service = document.getElementById('profService').value;
         if(document.getElementById('profPoste')) updates.poste = document.getElementById('profPoste').value;
         if(document.getElementById('profCredits')) updates.totalCreditsCumules = parseFloat(document.getElementById('profCredits').value);
+        if(document.getElementById('profHdr')) {
+            updates.habilitéDirigerRecherche = document.getElementById('profHdr').checked;
+        }
 
         const res = await fetch('/api/auth/me/profile', {
             method: 'PUT',

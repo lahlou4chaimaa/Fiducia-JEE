@@ -31,13 +31,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/login", "/", "/register", "/css/**", "/js/**").permitAll()
+                .requestMatchers("/login", "/", "/register", "/css/**", "/js/**", "/screen.png").permitAll()
                 // On autorise l'accès à la "carcasse" HTML, le JS filtrera après
                 .requestMatchers("/admin/**", "/candidat/**", "/profile", "/directeur/**").permitAll()
                 //.requestMatchers("/api/candidat/**").hasAuthority("ROLE_CANDIDAT")
                 .requestMatchers("/api/candidat/**").hasRole("CANDIDAT")
                 .requestMatchers("/api/validation/directeur/**").hasRole("DIRECTEUR")
                 .requestMatchers("/api/validation/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/files/**").permitAll()
                 .requestMatchers("/profile", "/api/auth/me/**").authenticated()
                 //.requestMatchers("/api/admin/directeurs").hasAnyRole("ADMIN", "CANDIDAT")
                 .anyRequest().authenticated()

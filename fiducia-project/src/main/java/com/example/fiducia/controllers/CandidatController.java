@@ -1,10 +1,8 @@
 package com.example.fiducia.controllers;
 
 import com.example.fiducia.dto.DossierStatusDTO;
-import com.example.fiducia.entities.CandidatDoctorant;
-import com.example.fiducia.entities.DirecteurThese;
-import com.example.fiducia.entities.DossierInscription;
-import com.example.fiducia.entities.StatutDossier; // Important
+import com.example.fiducia.entities.*;
+import com.example.fiducia.repositories.CampagneRepository;
 import com.example.fiducia.repositories.DirecteurTheseRepository;
 import com.example.fiducia.repositories.DossierInscriptionRepository;
 import com.example.fiducia.repositories.UserRepository;
@@ -15,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -34,12 +33,16 @@ public class CandidatController {
     @Autowired private DossierInscriptionService dossierService;
     @Autowired
     private DirecteurTheseRepository directeurRepository;
+    @Autowired
+    private CampagneRepository campagneRepository;
+
 
     @PostMapping("/soumettre-dossier")
     public ResponseEntity<?> soumettreDossier(
             @RequestParam("sujet") String sujet,
             @RequestParam("laboratoire") String laboratoire, // Ajouté
             @RequestParam("directeurId") Long directeurId,
+            @RequestParam("campagneId") Long campagneId,
             @RequestParam("cv") MultipartFile cv,
             @RequestParam("collaboration") String collaboration,
             @RequestParam("diplome") MultipartFile diplome,
@@ -61,6 +64,10 @@ public class CandidatController {
         dossier.setSujetThèse(sujet);
         dossier.setLaboratoire(laboratoire);
         dossier.setCollaboration(collaboration);
+
+        Campagne campagne = campagneRepository.findById(campagneId)
+                .orElseThrow(() -> new RuntimeException("Campagne introuvable"));
+        dossier.setCampagne(campagne);
 
         // Trouver le directeur
         DirecteurThese dt = (DirecteurThese) directeurRepository.findById(directeurId)

@@ -62,15 +62,31 @@ public class AdminController {
     @PostMapping("/campagnes")
     @Transactional
     public ResponseEntity<?> creerCampagne(@RequestBody Campagne campagne) {
-        // On s'assure qu'une seule campagne est active à la fois
+        // 1. Désactiver l'ancienne campagne si la nouvelle est active
         if (campagne.isActive()) {
             campagneRepository.findByActiveTrue().ifPresent(c -> {
                 c.setActive(false);
                 campagneRepository.save(c);
             });
         }
-        campagneRepository.save(campagne);
-        return ResponseEntity.ok("Campagne créée avec succès !");
+
+        // 2. IMPORTANT : Créer une nouvelle liste pour les directeurs gérés par Hibernate
+        if (campagne.getDirecteursAssocies() != null && !campagne.getDirecteursAssocies().isEmpty()) {
+            List<DirecteurThese> directeursPersistes = campagne.getDirecteursAssocies().stream()
+                    .map(d -> directeurRepository.findById(d.getId())
+                            .orElseThrow(() -> new RuntimeException("Directeur ID " + d.getId() + " non trouvé")))
+                    .collect(Collectors.toList());
+
+            // On force l'affectation de la liste récupérée du Repo
+            campagne.setDirecteursAssocies(directeursPersistes);
+        }
+
+        // 3. Sauvegarder
+        Campagne savedCampagne = campagneRepository.save(campagne);
+
+        return ResponseEntity.ok("Campagne créée avec " +
+                (savedCampagne.getDirecteursAssocies() != null ? savedCampagne.getDirecteursAssocies().size() : 0) +
+                " directeur(s).");
     }
     @GetMapping("/campagnes")
     public ResponseEntity<List<Campagne>> getAllCampagnes() {

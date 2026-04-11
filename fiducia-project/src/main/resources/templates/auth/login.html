@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Manrope:wght@200..800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-
+    <link rel="icon" type="image/x-icon" th:href="@{/screen.png}">
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -70,19 +70,26 @@
             </div>
 
             <form id="loginForm" class="space-y-6">
-                <div class="grid grid-cols-2 gap-3 mb-8">
+                <div class="grid grid-cols-3 gap-2 mb-8">
                     <label class="cursor-pointer group">
                         <input checked class="peer hidden" name="role" type="radio" value="CANDIDAT"/>
-                        <div class="flex flex-col items-center justify-center p-3 rounded-lg border border-outline-variant/20 bg-background text-on-surface-variant peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary transition-all">
-                            <span class="material-symbols-outlined mb-1">school</span>
-                            <span class="text-[10px] uppercase font-bold">Candidat</span>
+                        <div class="flex flex-col items-center justify-center p-2 rounded-lg border border-outline-variant/20 bg-background text-on-surface-variant peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary transition-all">
+                            <span class="material-symbols-outlined text-sm mb-1">school</span>
+                            <span class="text-[9px] uppercase font-bold text-center">Candidat</span>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer group">
+                        <input class="peer hidden" name="role" type="radio" value="DIRECTEUR"/>
+                        <div class="flex flex-col items-center justify-center p-2 rounded-lg border border-outline-variant/20 bg-background text-on-surface-variant peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary transition-all">
+                            <span class="material-symbols-outlined text-sm mb-1">person_search</span>
+                            <span class="text-[9px] uppercase font-bold text-center">Directeur</span>
                         </div>
                     </label>
                     <label class="cursor-pointer group">
                         <input class="peer hidden" name="role" type="radio" value="ADMIN"/>
-                        <div class="flex flex-col items-center justify-center p-3 rounded-lg border border-outline-variant/20 bg-background text-on-surface-variant peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary transition-all">
-                            <span class="material-symbols-outlined mb-1">settings</span>
-                            <span class="text-[10px] uppercase font-bold">Admin</span>
+                        <div class="flex flex-col items-center justify-center p-2 rounded-lg border border-outline-variant/20 bg-background text-on-surface-variant peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary transition-all">
+                            <span class="material-symbols-outlined text-sm mb-1">settings</span>
+                            <span class="text-[9px] uppercase font-bold text-center">Admin</span>
                         </div>
                     </label>
                 </div>
@@ -126,8 +133,11 @@
 <script>
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
+        // On récupère la valeur du bouton radio coché
+        const selectedRole = document.querySelector('input[name="role"]:checked').value;
         const errorMsg = document.getElementById('errorMsg');
 
         try {
@@ -139,20 +149,34 @@
 
             if (response.ok) {
                 const result = await response.json();
+
+                // Stockage des infos essentielles
                 localStorage.setItem('token', result.token);
                 localStorage.setItem('email', result.email);
+                localStorage.setItem('roles', JSON.stringify(result.roles));
 
-                // Redirection selon le rôle (Ordre important)
-                if (result.roles.includes('ROLE_ADMIN')) {
+                // REDIRECTION INTELLIGENTE
+                // On vérifie d'abord si l'utilisateur possède bien le rôle qu'il a sélectionné
+                const userRoles = result.roles; // Ex: ["ROLE_CANDIDAT"]
+
+                if (selectedRole === 'ADMIN' && userRoles.includes('ROLE_ADMIN')) {
                     window.location.href = '/admin/dashboard';
                 }
-                else if (result.roles.includes('ROLE_DIRECTEUR')) { // Ajout de cette condition
+                else if (selectedRole === 'DIRECTEUR' && userRoles.includes('ROLE_DIRECTEUR')) {
                     window.location.href = '/directeur/dashboard';
                 }
-                else if (result.roles.includes('ROLE_CANDIDAT')) {
+                else if (selectedRole === 'CANDIDAT' && userRoles.includes('ROLE_CANDIDAT')) {
                     window.location.href = '/candidat/dashboard';
                 }
+                else {
+                    // Cas où l'utilisateur se trompe de bouton (ex: un candidat qui clique sur "Admin")
+                    errorMsg.textContent = "Accès refusé : vous n'avez pas les droits pour cet espace.";
+                    errorMsg.classList.remove('hidden');
+                    localStorage.clear();
+                }
+
             } else {
+                errorMsg.textContent = "Email ou mot de passe incorrect.";
                 errorMsg.classList.remove('hidden');
             }
         } catch (error) {

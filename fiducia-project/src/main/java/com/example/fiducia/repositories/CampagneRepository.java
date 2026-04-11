@@ -7,4 +7,5 @@ import java.util.Optional;
 public interface CampagneRepository extends JpaRepository<Campagne, Long> {
     // Trouver la campagne active actuelle
     Optional<Campagne> findByActiveTrue();
+
 }

@@ -10,15 +10,28 @@
         body { background-color: #041329; color: #d6e3ff; font-family: 'Manrope', sans-serif; }
         .sidebar-item-active { border-left: 4px solid #e9c176; background: rgba(255,255,255,0.05); color: #e9c176; font-weight: bold; }
         .glass-card { background: rgba(17, 32, 54, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
+
+        /* Correction ici : Utilisation de la syntaxe CSS standard */
+        .step-glow {
+            box-shadow: 0 0 15px rgba(233, 193, 118, 0.3);
+            border-color: #e9c176 !important;
+            background-color: #231700 !important;
+            color: #e9c176 !important;
+        }
+
+        .line-gradient {
+            background: linear-gradient(to right, #e9c176, #44474d);
+        }
     </style>
 </head>
 <body class="flex min-h-screen">
 
 <aside class="fixed left-0 top-0 h-screen w-64 bg-[#010e24] border-r border-white/5 flex flex-col py-8 z-50">
     <div class="px-6 mb-10">
-        <h1 class="text-2xl font-bold text-primary italic">Fiducia</h1>
+        <h1 class="text-2xl font-bold text-[#e9c176] italic font-serif">Fiducia</h1>
         <p class="text-[10px] text-slate-500 uppercase tracking-widest">Espace Candidat</p>
     </div>
+
     <nav class="flex-1 space-y-1">
         <a href="/candidat/dashboard" id="nav-dashboard" class="sidebar-item-active w-full flex items-center gap-3 px-6 py-4 text-sm transition-all">
             <span class="material-symbols-outlined">dashboard</span>
@@ -29,17 +42,24 @@
             <span class="material-symbols-outlined group-hover:text-primary">cloud_upload</span>
             <span class="group-hover:text-primary">Déposer mon dossier</span>
         </a>
-
-        <a href="/profile" class="w-full flex items-center gap-3 px-6 py-4 text-slate-400 hover:bg-white/5 transition-all text-sm group">
-            <span class="material-symbols-outlined group-hover:text-primary">account_circle</span>
-            <span>Mon Profil</span>
-        </a>
     </nav>
-    <div class="px-6 pt-6 border-t border-white/5">
-        <button onclick="localStorage.clear(); window.location.href='/login'" class="w-full flex items-center gap-3 text-red-400 hover:text-red-300 transition-all text-sm">
-            <span class="material-symbols-outlined">logout</span>
-            <span>Déconnexion</span>
-        </button>
+
+    <div class="px-4 pt-4 border-t border-white/5 space-y-4">
+        <div class="flex items-center gap-2">
+            <a href="/profile" class="flex-1 flex items-center gap-3 p-2 rounded-xl bg-[#112036] border border-white/5 hover:bg-[#2c3951] transition-all group">
+                <div class="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
+                    <span class="material-symbols-outlined text-primary text-sm">person</span>
+                </div>
+                <div class="flex flex-col min-w-0">
+                    <span id="sidebar-user-name-display" class="text-[11px] font-bold truncate text-[#d6e3ff]">Mon Profil</span>
+                    <span class="text-[9px] text-slate-500 uppercase tracking-tighter">Candidat</span>
+                </div>
+            </a>
+
+            <button onclick="logout()" class="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all group" title="Déconnexion">
+                <span class="material-symbols-outlined text-sm">logout</span>
+            </button>
+        </div>
     </div>
 </aside>
 
@@ -54,31 +74,42 @@
         </div>
     </header>
 
-    <div id="no-dossier" class="hidden glass-card p-16 rounded-3xl border-dashed text-center">
+    <div id="no-dossier" class="hidden glass-card p-16 rounded-3xl border-dashed border-2 border-white/5 text-center">
         <span class="material-symbols-outlined text-6xl text-slate-700 mb-4">folder_open</span>
         <h3 class="text-xl font-bold">Aucune candidature active</h3>
         <p class="text-slate-500 mb-8">Commencez votre parcours doctoral en soumettant votre dossier.</p>
-        <a href="/candidat/soumission" class="bg-primary text-on-primary px-8 py-3 rounded-xl font-bold hover:scale-105 transition-all">S'inscrire maintenant</a>
+        <a href="/candidat/soumission" class="inline-block bg-[#e9c176] text-[#412d00] px-8 py-3 rounded-xl font-bold hover:scale-105 transition-all uppercase text-xs tracking-widest">
+            S'inscrire maintenant
+        </a>
     </div>
 
     <div id="dossier-status" class="hidden space-y-8">
 
-        <div class="glass-card p-10 rounded-3xl relative overflow-hidden">
-            <div class="relative flex justify-between items-center w-full max-w-3xl mx-auto z-10">
-                <div class="absolute h-0.5 bg-white/10 w-full top-5 -z-10"></div>
-                <div id="progress-bar" class="absolute h-0.5 bg-primary w-0 top-5 -z-10 transition-all duration-1000 shadow-[0_0_15px_#e9c176]"></div>
+        <div class="mb-12 relative px-4">
+            <div class="flex justify-between items-center relative z-10 max-w-4xl mx-auto">
+                <div class="flex flex-col items-center gap-3">
+                    <div id="dot-1" class="w-12 h-12 rounded-full flex items-center justify-center border-2 border-[#44474d] bg-[#041329] text-[#8f9097] transition-all">
+                        <span class="material-symbols-outlined font-bold">send</span>
+                    </div>
+                    <span class="font-bold text-[10px] uppercase tracking-widest">Soumis</span>
+                </div>
 
-                <div class="flex flex-col items-center gap-2">
-                    <div id="dot-1" class="w-10 h-10 rounded-full bg-[#112036] border-2 border-white/10 flex items-center justify-center transition-all"><span class="material-symbols-outlined text-sm">send</span></div>
-                    <span class="text-[9px] font-bold uppercase tracking-widest">Soumis</span>
+                <div id="line-1" class="flex-1 h-[2px] mx-4 bg-[#44474d] mb-8 opacity-30"></div>
+
+                <div class="flex flex-col items-center gap-3">
+                    <div id="dot-2" class="w-12 h-12 rounded-full flex items-center justify-center border-2 border-[#44474d] bg-[#041329] text-[#8f9097] transition-all">
+                        <span class="material-symbols-outlined font-bold">fact_check</span>
+                    </div>
+                    <span class="font-bold text-[10px] uppercase tracking-widest">Avis Directeur</span>
                 </div>
-                <div class="flex flex-col items-center gap-2">
-                    <div id="dot-2" class="w-10 h-10 rounded-full bg-[#112036] border-2 border-white/10 flex items-center justify-center transition-all"><span class="material-symbols-outlined text-sm">fact_check</span></div>
-                    <span class="text-[9px] font-bold uppercase tracking-widest">Avis Directeur</span>
-                </div>
-                <div class="flex flex-col items-center gap-2">
-                    <div id="dot-3" class="w-10 h-10 rounded-full bg-[#112036] border-2 border-white/10 flex items-center justify-center transition-all"><span class="material-symbols-outlined text-sm">verified</span></div>
-                    <span class="text-[9px] font-bold uppercase tracking-widest">Validation</span>
+
+                <div id="line-2" class="flex-1 h-[2px] mx-4 bg-[#44474d] mb-8 opacity-30"></div>
+
+                <div class="flex flex-col items-center gap-3">
+                    <div id="dot-3" class="w-12 h-12 rounded-full flex items-center justify-center border-2 border-[#44474d] bg-[#041329] text-[#8f9097] transition-all">
+                        <span class="material-symbols-outlined font-bold">verified</span>
+                    </div>
+                    <span class="font-bold text-[10px] uppercase tracking-widest">Validation</span>
                 </div>
             </div>
         </div>
@@ -158,6 +189,7 @@
             const resMe = await fetch('/api/auth/me/profile', { headers: { 'Authorization': 'Bearer ' + token } });
             const me = await resMe.json();
             document.getElementById('userNameHeader').textContent = me.prenom;
+            document.getElementById('sidebar-user-name-display').textContent = me.prenom + ' ' + me.nom;
 
             // 2. Récupérer le dossier complet (mon-statut)
             const resStatut = await fetch('/api/candidat/mon-statut', { headers: { 'Authorization': 'Bearer ' + token } });
@@ -220,26 +252,38 @@
     }
 
     function updateProgressBar(statut) {
-        let percent = 0;
         const steps = [false, false, false];
 
         if (statut === 'SOUMIS' || statut === 'EN_ATTENTE_DIRECTEUR') {
-            percent = 15; steps[0] = true;
+            steps[0] = true;
         } else if (statut === 'VALIDE_PAR_DIRECTEUR' || statut === 'EN_ATTENTE_ADMIN') {
-            percent = 50; steps[0] = true; steps[1] = true;
+            steps[0] = true; steps[1] = true;
         } else if (statut === 'VALIDE') {
-            percent = 100; steps[0] = true; steps[1] = true; steps[2] = true;
+            steps[0] = true; steps[1] = true; steps[2] = true;
             document.getElementById('status-badge').className = "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-green-500/20 text-green-400 border border-green-500/20";
         }
 
-        document.getElementById('progress-bar').style.width = percent + '%';
         steps.forEach((active, i) => {
+            const dot = document.getElementById(`dot-${i+1}`);
+            const line = document.getElementById(`line-${i}`); // line-1, line-2...
+
             if(active) {
-                const dot = document.getElementById(`dot-${i+1}`);
-                dot.classList.add('border-primary', 'text-primary');
-                dot.classList.remove('border-white/10');
+                // On ajoute la classe CSS personnalisée qui contient le glow
+                dot.classList.add('step-glow');
+                dot.classList.remove('border-[#44474d]', 'bg-[#041329]', 'text-[#8f9097]');
+
+                // Si c'est une ligne, on lui donne le gradient doré
+                if(line) {
+                    line.classList.add('line-gradient');
+                    line.classList.remove('opacity-30', 'bg-[#44474d]');
+                }
             }
         });
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = '/login';
     }
 
     initDashboard();

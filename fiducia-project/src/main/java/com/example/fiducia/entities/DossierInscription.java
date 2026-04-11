@@ -40,4 +40,8 @@ public class DossierInscription {
     private String avisDirecteur; // "FAVORABLE" ou "DEFAVORABLE"
     private String commentaireDirecteur;
     private String remarquesAdmin;
+
+    @ManyToOne
+    @JoinColumn(name = "campagne_id")
+    private Campagne campagne;
 }

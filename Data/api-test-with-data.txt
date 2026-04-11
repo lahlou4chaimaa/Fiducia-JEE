@@ -1,7 +1,3 @@
-INSERT INTO role (libelle) VALUES 
-('ROLE_CANDIDAT'), ('ROLE_DOCTORANT'), ('ROLE_DIRECTEUR'), ('ROLE_ADMIN'), ('ROLE_PERSONNEL')
-ON CONFLICT (libelle) DO NOTHING;
-
 POST http://localhost:8080/api/auth/register
 
 {
@@ -31,15 +27,6 @@ POST http://localhost:8080/api/auth/register
     "email": "candidat@emsi.ma",
     "password": "candidatpassword"
 }
-
-SELECT id, email FROM utilisateur;
-SELECT id, libelle FROM role;
-SELECT * FROM user_roles;
-
-
-INSERT INTO user_roles (user_id, role_id) VALUES (1, 2);
-INSERT INTO user_roles (user_id, role_id) VALUES (2, 3); 
-INSERT INTO user_roles (user_id, role_id) VALUES (3, 6); 
 
 POST http://localhost:8080/api/auth/register-directeur
 
@@ -97,6 +84,9 @@ POST http://localhost:8080/api/admin/campagnes
     "libelle": "Inscription Doctorat 2026",
     "dateDebut": "2026-01-01",
     "dateFin": "2026-12-31",
+"directeursAutorises": [
+        {"id": 1} 
+    ]
     "active": true
 }
 
@@ -161,6 +151,5 @@ PUT http://localhost:8080/api/auth/me/profile
     "totalCreditsCumules": 25000.00
 }
 
-
-
+GET http://localhost:8080/api/validation/directeur/mes-dossiers
 
