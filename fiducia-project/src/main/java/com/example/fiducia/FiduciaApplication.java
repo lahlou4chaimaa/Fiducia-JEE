@@ -10,4 +10,4 @@ public class FiduciaApplication {
         SpringApplication.run(FiduciaApplication.class, args);
     }
 
-}
+} 

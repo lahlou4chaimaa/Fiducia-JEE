@@ -1,0 +1,89 @@
+@startuml fiducia_sequence_styled
+!theme plain
+
+' --- Configuration du style ---
+skinparam sequenceArrowThickness 2
+skinparam participant {
+    BackgroundColor #E3F2FD
+    BorderColor #1976D2
+}
+skinparam actor {
+    BackgroundColor #FFF3E0
+    BorderColor #F57C00
+}
+skinparam database {
+    BackgroundColor #F1F8E9
+    BorderColor #4CAF50
+}
+skinparam sequenceMessageAlign center
+
+title **Fiducia** - Processus d'Inscription
+
+' --- Définition des acteurs et composants ---
+actor "Candidat" as User
+participant "Navigateur\n(Thymeleaf)" as Browser
+participant "Spring Boot\nController" as Ctrl
+participant "Service\nInscription" as Srv
+database "PostgreSQL\nFiduciaDB" as DB
+actor "Directeur" as Dir
+actor "Administration" as Admin
+
+' --- Etape 1 : Soumission ---
+== Soumission du Dossier (Etape 1) ==
+
+User -> Browser: Remplit formulaire d'inscription
+Browser -> Ctrl: POST /inscription (Multipart)
+activate Ctrl
+
+Ctrl -> Srv: verifierEtEnregistrer(données, fichiers)
+activate Srv
+Srv -> Srv: Validation formats (PDF/JPG)
+Srv -> DB: INSERT dossier (statut: 'ATTENTE_AVIS_DIR')
+Srv -> DB: INSERT documents
+Srv --> Ctrl: Confirmation sauvegarde
+deactivate Srv
+
+Ctrl -> Srv: envoyerEmailNotification(Directeur)
+Ctrl --> Browser: Redirection /dashboard (Flash Success)
+deactivate Ctrl
+
+Browser --> User: Affiche statut "En attente d'avis"
+
+' --- Etape 2 : Avis Directeur ---
+== Avis du Directeur (Etape 2) ==
+
+Dir -> Browser: Accède à /avis/liste
+Browser -> Ctrl: GET /avis/liste
+Ctrl -> DB: SELECT dossiers WHERE dir_id=...
+DB --> Ctrl: Liste des dossiers
+Ctrl --> Browser: Rendu liste (Thymeleaf)
+
+Dir -> Browser: Clique "Donner Avis" (Favorable)
+Browser -> Ctrl: POST /avis/valider/{id}
+activate Ctrl
+Ctrl -> DB: UPDATE dossier SET statut='ATTENTE_VAL_ADMIN'
+Ctrl --> Browser: Redirection /avis/liste
+deactivate Ctrl
+
+' --- Etape 3 : Validation Admin ---
+== Validation Administrative (Etape 3) ==
+
+Admin -> Browser: Accède à /admin/validation
+Browser -> Ctrl: GET /admin/validation
+Ctrl --> Browser: Rendu dossiers à vérifier
+
+Admin -> Browser: Clique "Valider Dossier"
+Browser -> Ctrl: POST /admin/finaliser/{id}
+activate Ctrl
+Ctrl -> DB: UPDATE dossier SET statut='VALIDE'
+Ctrl -> DB: UPDATE utilisateur SET role='DOCTORANT'
+DB --> Ctrl: OK (Transactionnel)
+Ctrl --> Browser: Redirection /admin/success
+deactivate Ctrl
+
+note over User, Browser
+    Notification en temps réel :
+    Le statut du candidat passe à **Inscrit**
+end note
+
+@enduml
