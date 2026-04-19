@@ -1,59 +1,76 @@
-@startuml
-left to right direction
-skinparam packageStyle rectangle
+@startuml fiducia_usecases_clean
+!theme plain
 
+' --- Style UI ---
+skinparam usecase {
+    BackgroundColor #E3F2FD
+    BorderColor #1976D2
+}
+skinparam actor {
+    BackgroundColor #FFF3E0
+    BorderColor #F57C00
+}
+skinparam rectangle {
+    BackgroundColor white
+}
+
+title **Fiducia** - Diagramme de Cas d'Utilisation
+
+left to right direction
+
+' --- Acteurs ---
 actor "Candidat / Doctorant" as Doctorant
 actor "Directeur de Thèse" as Directeur
 actor "Personnel Administratif" as Admin
 
-rectangle "Portail de Suivi du Doctorat" {
-  
-  package "Module Authentification" {
-    usecase "Créer un compte" as UC1
-    usecase "S'authentifier" as UC2
-  }
+' --- Système ---
+rectangle "Fiducia : Portail de Suivi" {
 
-  package "Module Inscription" {
-    usecase "Soumettre dossier (Inscription/Réinscription)" as UC3
-    usecase "Téléverser pièces justificatives" as UC4
-    usecase "Suivre l'état du dossier (Dashboard)" as UC5
-    usecase "Gérer les campagnes d'inscription" as UC6
-    usecase "Valider administrativement le dossier" as UC12
-  }
+    package "Module Authentification" {
+        (Créer un compte) as UC1
+        (S'authentifier) as UC2
+    }
 
-  package "Module Soutenance" {
-    usecase "Soumettre demande de soutenance" as UC7
-    usecase "Vérifier prérequis (Publications/Formations)" as UC8
-    usecase "Déposer manuscrit" as UC9
-    usecase "Donner avis sur inscription/soutenance" as UC10
-    usecase "Proposer membres du jury" as UC11
-    usecase "Planifier la soutenance (Date/Lieu)" as UC13
-  }
+    package "Module Inscription" {
+        (Soumettre dossier) as UC3
+        (Téléverser pièces) as UC4
+        (Suivre le dossier) as UC5
+        (Gérer les campagnes) as UC6
+        (Valider administrativement) as UC12
+    }
+
+    package "Module Soutenance" {
+        (Demande de soutenance) as UC7
+        (Vérifier prérequis) as UC8
+        (Déposer manuscrit) as UC9
+        (Donner un avis) as UC10
+        (Proposer jury) as UC11
+        (Planifier date/lieu) as UC13
+    }
 }
 
-' Relations pour le Doctorant
-Doctorant --> UC1
-Doctorant --> UC2
-Doctorant --> UC3
-Doctorant --> UC4
-Doctorant --> UC5
-Doctorant --> UC7
-Doctorant --> UC9
+' --- Relations Doctorant ---
+Doctorant -- UC1
+Doctorant -- UC2
+Doctorant -- UC3
+Doctorant -- UC5
+Doctorant -- UC7
+Doctorant -- UC9
 
-' Relations pour le Directeur
-Directeur --> UC2
-Directeur --> UC10
-Directeur --> UC11
+' --- Relations Directeur ---
+Directeur -- UC2
+Directeur -- UC10
+Directeur -- UC11
 
-' Relations pour l'Administration
-Admin --> UC2
-Admin --> UC6
-Admin --> UC12
-Admin --> UC13
-Admin --> UC8
+' --- Relations Administration ---
+Admin -- UC2
+Admin -- UC6
+Admin -- UC12
+Admin -- UC13
+Admin -- UC8
 
-' Extensions et Inclusions
-UC3 ..> UC4 : <<include>>
-UC7 ..> UC8 : <<include>>
+' --- Inclusions & Extensions (placées à la fin pour ne pas perturber le layout) ---
+UC3 .> UC4 : <<include>>
+UC7 .> UC8 : <<include>>
 
 @enduml
