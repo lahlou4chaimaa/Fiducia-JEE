@@ -27,11 +27,10 @@ Fiducia-JEE est une application web basée sur Spring Boot permettant la gestion
 
 ### Prérequis
 
-*   [Java Development Kit (JDK) 17](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
-*   [Maven](https://maven.apache.org/download.cgi)
-*   PostgreSQL & MongoDB (en cours d'exécution sur votre machine locale ou serveur)
+*   [Docker](https://docs.docker.com/get-docker/)
+*   [Docker Compose](https://docs.docker.com/compose/install/)
 
-### Installation
+### Installation avec Docker (Recommandé)
 
 1.  **Cloner le dépôt :**
     ```bash
@@ -39,17 +38,24 @@ Fiducia-JEE est une application web basée sur Spring Boot permettant la gestion
     cd fiducia-project
     ```
 
-2.  **Configuration de la base de données :**
-    *   Vérifiez le fichier `.env` ou `src/main/resources/application.properties` (ou `.yml`) pour configurer les identifiants de vos bases de données PostgreSQL et MongoDB.
+2.  **Configuration de l'environnement :**
+    *   Assurez-vous que le fichier `.env` est présent et configuré à la racine du projet avec vos variables (identifiants PostgreSQL, configuration JWT, etc.).
 
-3.  **Compiler et exécuter l'application :**
+3.  **Lancer l'application avec Docker Compose :**
     ```bash
-    ./mvnw clean install
-    ./mvnw spring-boot:run
+    docker-compose up --build -d
     ```
+    *Cette commande va télécharger l'image PostgreSQL, construire l'image de l'application Spring Boot, et démarrer les conteneurs en arrière-plan.*
 
 4.  **Accéder à l'application :**
     *   L'application sera accessible à l'adresse : `http://localhost:8080`
+
+### Arrêter l'application
+
+Pour arrêter les conteneurs :
+```bash
+docker-compose down
+```
 
 ## 👥 Équipe du Projet et Contributions
 
