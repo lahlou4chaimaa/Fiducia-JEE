@@ -57,11 +57,10 @@ Ce projet a été réalisé en collaboration. Voici la répartition des tâches 
 
 | Membre de l'équipe | Rôle / Tâches accomplies |
 | :--- | :--- |
-| **EZ-ZAHRAOUI El-Mehdi** | *(Exemple : Développement du module de sécurité JWT, conception de la base de données, etc.)* Veuillez détailler ici vos contributions. |
-| **AIT LAHCEN Achraf** | *(Exemple : Gestion des dossiers d'inscription, intégration Thymeleaf, etc.)* Veuillez détailler ici vos contributions. |
-| **LAHLOU Chaimaa** | *(Exemple : Système de gestion des soutenances et upload de fichiers, etc.)* Veuillez détailler ici vos contributions. |
+| **EZ-ZAHRAOUI El-Mehdi** | *(**Module 1** - Développement du module de sécurité JWT, conception de la base de données, etc.)* |
+| **AIT LAHCEN Achraf** | *(**Module 2** - Gestion des dossiers d'inscription, intégration Thymeleaf, etc.)* |
+| **LAHLOU Chaimaa** | *(**Module 3** - Système de gestion des soutenances et upload de fichiers, etc.)* |
 
-> **Note :** *Remplissez le tableau ci-dessus avec les noms des membres de votre équipe (ex: Achraf, Mehdi, Chaimaa) et les détails spécifiques de ce que chacun a développé dans le projet.*
 
 ## 📄 Licence
 
