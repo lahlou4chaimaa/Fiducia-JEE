@@ -36,6 +36,9 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRATION_MS=${JWT_EXPIRATION_MS}
+      - FILE_UPLOAD_DIR=/app/uploads
+    volumes:
+      - ./uploads:/app/uploads
     networks:
       - fiducia-network
 

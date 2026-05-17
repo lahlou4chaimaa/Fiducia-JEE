@@ -1,5 +1,6 @@
 package com.example.fiducia.services;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -13,12 +14,15 @@ import java.util.UUID;
 public class FileStorageService {
 
     // Utilisation d'un chemin absolu ou normalisé pour éviter les surprises
-    private final Path root = Paths.get("uploads").toAbsolutePath().normalize();
+    //private final Path root = Paths.get("uploads").toAbsolutePath().normalize();
+    private final Path root;
 
-    public FileStorageService() {
+    public FileStorageService(@Value("${file.upload-dir}") String uploadDir) {
+
+        this.root = Paths.get(uploadDir).toAbsolutePath().normalize();
+
         try {
-            // Utilisation de createDirectories (plus robuste que createDirectory)
-            Files.createDirectories(root);
+            Files.createDirectories(this.root);
         } catch (IOException e) {
             throw new RuntimeException("Impossible de créer le dossier d'upload : " + e.getMessage());
         }
