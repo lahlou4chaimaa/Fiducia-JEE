@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html class="light" lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Fiducia - Bienvenue</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Manrope:wght@200..800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+    <link rel="icon" type="image/png" th:href="@{/logo.png}">
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#4A5568",
+                        "background": "#FFFFFF",
+                        "primary": "#d4af37",
+                        "on-primary": "#FFFFFF",
+                        "surface-container-low": "#F7FAFC",
+                        "outline-variant": "#E2E8F0",
+                        "surface-variant": "#EDF2F7",
+                        "on-surface": "#1A202C",
+                    },
+                    "fontFamily": {
+                        "headline": ["Newsreader"],
+                        "body": ["Manrope"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body { background-color: #FFFFFF; font-family: 'Manrope', sans-serif; }
+        .academic-grain {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.04; pointer-events: none;
+        }
+        .serif-title { font-family: 'Newsreader', serif; }
+    </style>
+</head>
+
+<body class="bg-background text-on-surface min-h-screen flex flex-col justify-between items-center p-6 relative overflow-y-auto">
+<div class="academic-grain fixed inset-0 z-0"></div>
+
+<div class="fixed inset-0 z-0 pointer-events-none">
+    <div class="absolute top-[10%] left-[50%] -translate-x-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[150px]"></div>
+    <div class="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-blue-100/30 rounded-full blur-[120px]"></div>
+</div>
+
+<div class="hidden md:block h-12 z-10"></div>
+
+<div class="relative z-10 w-full max-w-3xl flex flex-col items-center text-center space-y-10 my-auto py-8">
+
+    <div>
+        <span class="inline-block px-4 py-1.5 bg-surface-variant text-on-surface text-[11px] tracking-widest uppercase rounded-full border border-outline-variant shadow-sm">
+            Écosystème Numérique <span class="text-[#b3922e] font-bold">Fiducia</span>
+        </span>
+    </div>
+
+    <!-- Section Image modifiée pour masquer le fond blanc -->
+    <div class="flex justify-center items-center transition-transform duration-500 hover:scale-105 bg-transparent">
+        <img th:src="@{/logo.png}" alt="Logo Fiducia" class="w-full max-w-[320px] md:max-w-[400px] h-auto object-contain" style="mix-blend-mode: multiply; filter: contrast(110%);"/>
+    </div>
+
+    <div class="space-y-4 max-w-2xl">
+        <h1 class="serif-title text-5xl md:text-6xl font-bold text-on-surface leading-[1.2]">
+            Bienvenue sur le <br/>
+            <span class="text-[#b3922e] italic">Portail de Doctorat</span>
+        </h1>
+        <p class="text-on-surface-variant text-base md:text-lg leading-relaxed font-body max-w-lg mx-auto">
+            Votre espace dédié à l'excellence académique. Gérez vos candidatures, suivez vos travaux de recherche et collaborez au sein de notre infrastructure.
+        </p>
+    </div>
+
+    <div class="pt-4 w-full max-w-xs">
+        <a th:href="@{/login}" class="w-full bg-[#1A202C] text-white font-bold py-4 px-8 rounded-xl flex items-center justify-center space-x-3 hover:bg-[#2D3748] transition-all active:scale-[0.98] shadow-xl shadow-black/5 group">
+            <span class="text-sm tracking-widest uppercase font-extrabold">Accéder au Portail</span>
+            <span class="material-symbols-outlined text-xl transition-transform group-hover:translate-x-1">arrow_forward</span>
+        </a>
+    </div>
+</div>
+
+<footer class="w-full z-10 text-center pt-8 pb-4">
+    <p class="text-[11px] tracking-wider text-on-surface-variant/70 uppercase font-medium">
+        &copy; 2026 Fiducia Management System. Tous droits réservés.
+    </p>
+</footer>
+
+</body>
+</html>

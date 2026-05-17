@@ -122,8 +122,13 @@ public class ViewController {
         return "candidat/soutenance-candidat";
     }
 
-    @GetMapping("/")
+    /*@GetMapping("/")
     public String index() {
         return "redirect:/login";
+    }*/
+
+    @GetMapping("/")
+    public String index() {
+        return "welcome"; // correspond à src/main/resources/templates/welcome.html
     }
 }

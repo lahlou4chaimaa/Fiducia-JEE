@@ -284,7 +284,7 @@
 
                 document.getElementById('view-articles').textContent = data.nbArticlesQ1Q2 || 0;
                 document.getElementById('view-conferences').textContent = data.nbConferences || 0;
-                document.getElementById('view-heures').textContent = (data.heuresFormationCompletees || 0) + "h";
+                document.getElementById('view-heures').textContent = (data.heuresFormation || 0) + "h";
 
                 gererMessageEtapeEtBadge(data.statut);
 

@@ -90,6 +90,7 @@ public class AdminController {
     }
     @GetMapping("/campagnes")
     public ResponseEntity<List<Campagne>> getAllCampagnes() {
+
         return ResponseEntity.ok(campagneRepository.findAll());
     }
 

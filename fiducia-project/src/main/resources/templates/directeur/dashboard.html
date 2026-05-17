@@ -159,53 +159,58 @@
 
             if(dossiers.length === 0) {
                 container.innerHTML = `
-                    <div class="glass-card p-20 text-center rounded-3xl border-dashed border-2 border-white/10">
-                        <span class="material-symbols-outlined text-6xl text-slate-700 mb-4">inbox</span>
-                        <h3 class="serif-display text-xl font-bold text-outline">Aucun dossier en attente</h3>
-                    </div>`;
+                <div class="glass-card p-20 text-center rounded-3xl border-dashed border-2 border-white/10">
+                    <span class="material-symbols-outlined text-6xl text-slate-700 mb-4">inbox</span>
+                    <h3 class="serif-display text-xl font-bold text-outline">Aucun dossier en attente</h3>
+                </div>`;
                 return;
             }
 
             dossiers.forEach(d => {
                 const dateModif = new Date(d.dateDerniereModification).toLocaleDateString('fr-FR');
 
-                // Sécurisation des chaînes de chemins de fichiers pour l'injection JS
-                const cvUrl = `/api/soutenance/fichiers/${encodeURIComponent(d.cvPath || '')}`;
-                const lmUrl = `/api/soutenance/fichiers/${encodeURIComponent(d.lettreMotivationPath || '')}`;
+                // Extraction sécurisée des chaînes et injection du Token de session
+                // On ajoute ?token=... pour que le filtre AuthTokenFilter l'authentifie dans le nouvel onglet
+                const cvUrl = `/documents/${encodeURIComponent(d.cvPath || '')}?token=${token}`;
+                const lmUrl = `/documents/${encodeURIComponent(d.lettreMotivationPath || '')}?token=${token}`;
+                const diplomeUrl = `/documents/${encodeURIComponent(d.diplomePath || '')}?token=${token}`;
 
                 container.innerHTML += `
-                    <article class="bg-surface-container-low p-6 rounded-xl relative group transition-all hover:bg-surface-container-high border-l-4 border-primary">
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                            <div class="flex items-center gap-5">
-                                <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
-                                     <span class="material-symbols-outlined text-primary text-3xl font-light">account_circle</span>
-                                </div>
-                                <div>
-                                    <h3 class="serif-display text-xl font-bold text-white">${d.candidat.prenom} ${d.candidat.nom}</h3>
-                                    <p class="text-sm text-outline font-medium">Sujet : "${d.sujetThèse}"</p>
-                                </div>
+                <article class="bg-surface-container-low p-6 rounded-xl relative group transition-all hover:bg-surface-container-high border-l-4 border-primary">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                        <div class="flex items-center gap-5">
+                            <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
+                                 <span class="material-symbols-outlined text-primary text-3xl font-light">account_circle</span>
                             </div>
-                            <div class="flex flex-col items-end gap-2">
-                                <span class="text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded">En attente d'avis</span>
-                                <p class="text-xs text-outline italic font-mono uppercase">Reçu le ${dateModif}</p>
+                            <div>
+                                <h3 class="serif-display text-xl font-bold text-white">${d.candidat.prenom} ${d.candidat.nom}</h3>
+                                <p class="text-sm text-outline font-medium">Sujet : "${d.sujetThèse}"</p>
                             </div>
                         </div>
+                        <div class="flex flex-col items-end gap-2">
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded">En attente d'avis</span>
+                            <p class="text-xs text-outline italic font-mono uppercase">Reçu le ${dateModif}</p>
+                        </div>
+                    </div>
 
-                        <div class="mt-6 flex flex-wrap gap-3">
-                            <button onclick="openModal(${d.id})" class="flex items-center gap-2 px-6 py-2 bg-primary text-on-primary rounded-lg text-sm font-bold transition-all hover:brightness-110">
-                                <span class="material-symbols-outlined text-sm">rate_review</span> Évaluer la candidature
+                    <div class="mt-6 flex flex-wrap gap-3">
+                        <button onclick="openModal(${d.id})" class="flex items-center gap-2 px-6 py-2 bg-primary text-on-primary rounded-lg text-sm font-bold transition-all hover:brightness-110">
+                            <span class="material-symbols-outlined text-sm">rate_review</span> Évaluer la candidature
+                        </button>
+                        <div class="flex gap-2">
+                            <button onclick="window.open('${cvUrl}')" class="p-2 border border-white/10 text-outline rounded-lg hover:text-primary transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-tighter">
+                                <span class="material-symbols-outlined text-sm">description</span> CV
                             </button>
-                            <div class="flex gap-2">
-                                <button onclick="window.open('${cvUrl}')" class="p-2 border border-white/10 text-outline rounded-lg hover:text-primary transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-tighter">
-                                    <span class="material-symbols-outlined text-sm">description</span> CV
-                                </button>
-                                <button onclick="window.open('${lmUrl}')" class="p-2 border border-white/10 text-outline rounded-lg hover:text-primary transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-tighter">
-                                    <span class="material-symbols-outlined text-sm">mail</span> Lettre
-                                </button>
-                            </div>
+                            <button onclick="window.open('${lmUrl}')" class="p-2 border border-white/10 text-outline rounded-lg hover:text-primary transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-tighter">
+                                <span class="material-symbols-outlined text-sm">mail</span> Lettre
+                            </button>
+                            <button onclick="window.open('${diplomeUrl}')" class="p-2 border border-white/10 text-outline rounded-lg hover:text-primary transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-tighter" title="Visualiser le Diplôme">
+                                <span class="material-symbols-outlined text-sm">school</span> Diplôme
+                            </button>
                         </div>
-                    </article>
-                `;
+                    </div>
+                </article>
+            `;
             });
         } catch (err) {
             container.innerHTML = '<p class="text-error text-center serif-display">Erreur lors de la récupération des dossiers candidates.</p>';

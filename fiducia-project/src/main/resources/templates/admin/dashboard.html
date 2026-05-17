@@ -44,6 +44,8 @@
 </head>
 
 <body class="min-h-screen">
+<!-- À placer juste sous la balise <body> -->
+<div id="toast-container" class="fixed top-20 right-6 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
 <nav class="fixed top-0 w-full z-50 bg-[#041329] border-b border-white/10 backdrop-blur-md flex justify-between items-center px-6 h-16">
     <div class="flex items-center gap-4">
         <span class="font-serif text-xl tracking-tight text-[#e9c176] font-bold">Fiducia Admin</span>
@@ -236,7 +238,52 @@
 
     if (!token) window.location.href = '/login';
 
-    // AJOUT : Nouvelle fonction Fetch pour envoyer le DTO de Planification avec la sécurité Token
+    /**
+     * Système de Notifications Sophistiqué (Toast)
+     */
+    function showNotification(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        if(!container) return;
+
+        const id = 'toast-' + Date.now();
+        const isSuccess = type === 'success';
+        const bgBorderColor = isSuccess ? 'border-emerald-500/30 bg-[#0d211a]/90' : 'border-red-500/30 bg-[#210d0d]/90';
+        const iconColor = isSuccess ? 'text-emerald-400' : 'text-red-400';
+        const icon = isSuccess ? 'check_circle' : 'error';
+        const title = isSuccess ? 'Succès' : 'Erreur';
+
+        const toastHtml = `
+            <div id="${id}" style="pointer-events: auto; background: rgba(17, 32, 54, 0.6); backdrop-filter: blur(10px);"
+                 class="${bgBorderColor} p-4 rounded-xl flex items-start gap-3 border shadow-2xl transition-all duration-300 transform translate-x-12 opacity-0">
+                <span class="material-symbols-outlined ${iconColor} mt-0.5">${icon}</span>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold ${isSuccess ? 'text-emerald-400' : 'text-red-400'} uppercase tracking-wider mb-0.5">${title}</p>
+                    <p class="text-xs text-slate-300 leading-relaxed">${message}</p>
+                </div>
+                <button onclick="document.getElementById('${id}').remove()" class="text-slate-500 hover:text-white transition-all flex items-center justify-center">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+            </div>
+        `;
+
+        container.insertAdjacentHTML('beforeend', toastHtml);
+
+        const toastElement = document.getElementById(id);
+        setTimeout(() => {
+            if(toastElement) toastElement.classList.remove('translate-x-12', 'opacity-0');
+        }, 10);
+
+        setTimeout(() => {
+            if (toastElement) {
+                toastElement.classList.add('translate-x-12', 'opacity-0');
+                setTimeout(() => toastElement.remove(), 300);
+            }
+        }, 4000);
+    }
+
+    /**
+     * CORRECTION CRITIQUE : Soumission de la planification
+     */
     async function planifierSoutenance(event, demandeId) {
         event.preventDefault();
 
@@ -245,29 +292,50 @@
         const lieuVal = document.querySelector(`#form-planif-${demandeId} .lieu-in`).value;
 
         const payload = {
-            date: dateVal + ":00", // Format requis pour LocalDateTime parsing
+            date: dateVal,
             heure: heureVal,
             lieu: lieuVal
         };
 
-        const res = await fetch(`/api/soutenance/${demandeId}/autoriser-et-planifier`, {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + token,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
+        try {
+            const res = await fetch(`/api/soutenance/${demandeId}/autoriser-et-planifier`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
 
-        if (res.ok) {
-            alert("Soutenance officiellement autorisée et planifiée !");
-            window.location.reload();
-        } else {
-            const errMsg = await res.text();
-            alert("Erreur de planification : " + errMsg);
+            const responseText = await res.text();
+
+            if (res.ok) {
+                showNotification(responseText || "Soutenance officiellement autorisée et planifiée !", "success");
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                showNotification("Erreur de planification : " + responseText, "error");
+            }
+        } catch (err) {
+            showNotification("Impossible de joindre le serveur de planification.", "error");
         }
     }
+    function openFile(button) {
+        const filePath = button.getAttribute('data-path');
+        if (!filePath || filePath.trim() === '') {
+            alert("Aucun document n'a été fourni pour ce dossier.");
+            return;
+        }
 
+        // Récupération du token depuis le localStorage
+        const token = localStorage.getItem('token');
+
+        // On ajoute ?token=XYZ à l'URL pour que Spring puisse l'intercepter
+        const targetUrl = `/documents/${encodeURIComponent(filePath)}?token=${token}`;
+
+        window.open(targetUrl, '_blank');
+    }
     function toggleRegType(type) {
         currentStaffType = type;
         const fD = document.getElementById('fields-directeur');
@@ -311,22 +379,25 @@
             targetUrl = '/api/auth/register-admin';
         }
 
-        const res = await fetch(targetUrl, {
-            method: 'POST',
-            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+        try {
+            const res = await fetch(targetUrl, {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
 
-        if (res.ok) {
-            alert("Succès : Le compte " + currentStaffType.toLowerCase() + " a été créé.");
-            window.location.reload();
-        } else {
-            const err = await res.text();
-            alert("Erreur lors de l'inscription : " + err);
+            if (res.ok) {
+                showNotification("Le compte " + currentStaffType.toLowerCase() + " a été créé avec succès.", "success");
+                setTimeout(() => window.location.reload(), 2000);
+            } else {
+                const err = await res.text();
+                showNotification("Erreur lors de l'inscription : " + err, "error");
+            }
+        } catch (e) {
+            showNotification("Erreur de communication réseau.", "error");
         }
     };
 
-    // MISE À JOUR : Gestion du basculement d'onglets pour inclure 'soutenances'
     function showTab(tabName) {
         ['users', 'campagnes', 'registration', 'validations', 'soutenances'].forEach(t => {
             const section = document.getElementById(`tab-${t}`);
@@ -345,8 +416,12 @@
             headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
             body: JSON.stringify({ roleName })
         });
-        if (res.ok) window.location.reload();
-        else alert("Erreur");
+        if (res.ok) {
+            showNotification("Rôle mis à jour.", "success");
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showNotification("Erreur de mise à jour du rôle.", "error");
+        }
     }
 
     let currentDossierId = null;
@@ -362,7 +437,12 @@
             headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
             body: JSON.stringify({ valide: isValide, remarques: remarques })
         });
-        if (res.ok) window.location.reload();
+        if (res.ok) {
+            showNotification("Décision enregistrée.", "success");
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showNotification("Erreur lors de la validation.", "error");
+        }
     }
 
     function filterUsers() {

@@ -112,7 +112,7 @@ public class SoutenanceController {
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<?> autoriserEtPlanifier(
             @PathVariable Long id,
-            @RequestBody PlanificationDTO dto) { // Modification ici : réception du JSON
+            @RequestBody PlanificationDTO dto) {
 
         DemandeSoutenance demande = soutenanceRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Demande introuvable"));

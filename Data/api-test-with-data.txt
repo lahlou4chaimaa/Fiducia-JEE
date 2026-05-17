@@ -127,6 +127,7 @@ POST http://localhost:8080/api/validation/admin/5/finaliser
   "remarques": "Paiement des frais d'inscription reçu. Dossier complet et conforme."
 }
 
+GET http://localhost:8080/api/candidat/campagnes-actives
 
 GET http://localhost:8080/api/auth/me/profile
 

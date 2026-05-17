@@ -51,7 +51,7 @@
                     </button>
                 </div>
 
-                <button th:data-id="${d.id}" onclick="handleModal(this)"
+                <button th:data-id="${d.id}" th:onclick="'openFinalModal(' + ${d.id} + ')'"
                         class="px-8 py-3 bg-primary text-on-primary font-black rounded-xl text-[11px] uppercase tracking-widest hover:scale-[1.03] active:scale-95 transition-all shadow-lg shadow-primary/10">
                     Statuer sur l'inscription
                 </button>

@@ -37,6 +37,16 @@ public class CandidatController {
     private CampagneRepository campagneRepository;
 
 
+    @GetMapping("/campagnes-actives")
+    public ResponseEntity<List<Campagne>> getCampagnesActives() {
+        List<Campagne> campagnesOuvertes = campagneRepository.findByActiveTrue()
+                .stream()
+                .filter(Campagne::isOuverte) // Utilise votre méthode utilitaire (Vérification Date Début <= Aujourd'hui <= Date Fin)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(campagnesOuvertes);
+    }
+
     @PostMapping("/soumettre-dossier")
     public ResponseEntity<?> soumettreDossier(
             @RequestParam("sujet") String sujet,

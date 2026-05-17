@@ -19,7 +19,8 @@
                         "surface-container-low": "#0d1c32",
                         "surface-container-high": "#1c2a41",
                         "outline": "#8f9097",
-                        "error": "#ffb4ab"
+                        "error": "#ffb4ab",
+                        "success": "#34d399"
                     },
                     fontFamily: {
                         "serif": ["Newsreader", "serif"],
@@ -42,6 +43,9 @@
     </style>
 </head>
 <body class="text-on-surface text-white">
+
+<!-- Zone de notifications de type Toast -->
+<div id="toast-container" class="fixed top-20 right-6 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
 
 <nav class="fixed top-0 w-full z-50 bg-[#041329]/80 border-b border-white/10 backdrop-blur-md flex justify-between items-center px-6 h-16">
     <div class="flex items-center gap-4">
@@ -115,6 +119,47 @@
 
     if(!token) window.location.href = '/login';
 
+    // Fonction globale optimisée pour l'interactivité
+    function showNotification(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        const id = 'toast-' + Date.now();
+
+        const isSuccess = type === 'success';
+        const bgBorderColor = isSuccess ? 'border-emerald-500/30 bg-[#0d211a]/90' : 'border-red-500/30 bg-[#210d0d]/90';
+        const iconColor = isSuccess ? 'text-emerald-400' : 'text-red-400';
+        const icon = isSuccess ? 'check_circle' : 'error';
+        const title = isSuccess ? 'Succès' : 'Erreur';
+
+        // Ajout explicite de style pour forcer le pointer-events de manière héritée propre
+        const toastHtml = `
+            <div id="${id}" style="pointer-events: auto;" class="glass-card ${bgBorderColor} p-4 rounded-xl flex items-start gap-3 border shadow-2xl transition-all duration-300 transform translate-x-12 opacity-0">
+                <span class="material-symbols-outlined ${iconColor} mt-0.5">${icon}</span>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold ${isSuccess ? 'text-emerald-400' : 'text-red-400'} uppercase tracking-wider mb-0.5">${title}</p>
+                    <p class="text-xs text-slate-300 leading-relaxed">${message}</p>
+                </div>
+                <button onclick="document.getElementById('${id}').remove()" class="text-slate-500 hover:text-white transition-all flex items-center justify-center">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+            </div>
+        `;
+
+        container.insertAdjacentHTML('beforeend', toastHtml);
+
+        const toastElement = document.getElementById(id);
+        setTimeout(() => {
+            toastElement.classList.remove('translate-x-12', 'opacity-0');
+        }, 10);
+
+        // Auto-suppression propre
+        setTimeout(() => {
+            if (toastElement) {
+                toastElement.classList.add('translate-x-12', 'opacity-0');
+                setTimeout(() => toastElement.remove(), 300);
+            }
+        }, 5000);
+    }
+
     async function loadUserInfo() {
         try {
             const res = await fetch('/api/auth/me/profile', { headers: { 'Authorization': 'Bearer ' + token } });
@@ -130,12 +175,11 @@
     async function loadSoutenances() {
         const container = document.getElementById('soutenances-container');
         try {
-            // Requête vers l'API gérant les dossiers de soutenance soumis au directeur
+            // Ajusté selon ta route configurée dans ton SecurityConfig (/api/validation/directeur/...)
             const res = await fetch('/api/soutenance/directeur/mes-demandes', {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
 
-            // Si cette route exacte n'existe pas, ajuste l'URL d'appel ci-dessus
             const demandes = await res.json();
             document.getElementById('count-badge').textContent = `${demandes.length} Demande(s)`;
 
@@ -143,74 +187,88 @@
 
             if(demandes.length === 0) {
                 container.innerHTML = `
-                    <div class="glass-card p-20 text-center rounded-3xl border-dashed border-2 border-white/10">
-                        <span class="material-symbols-outlined text-6xl text-slate-700 mb-4">inbox</span>
-                        <h3 class="serif-display text-xl font-bold text-outline">Aucune demande de soutenance en attente</h3>
-                    </div>`;
+                <div class="glass-card p-20 text-center rounded-3xl border-dashed border-2 border-white/10">
+                    <span class="material-symbols-outlined text-6xl text-slate-700 mb-4">inbox</span>
+                    <h3 class="serif-display text-xl font-bold text-outline">Aucune demande de soutenance en attente</h3>
+                </div>`;
                 return;
             }
 
             demandes.forEach(d => {
-                const rapportUrl = `/api/soutenance/fichiers/${encodeURIComponent(d.rapportThesePath || '')}`;
-                const plagiatUrl = `/api/soutenance/fichiers/${encodeURIComponent(d.rapportAntiPlagiatPath || '')}`;
-                const pubUrl = `/api/soutenance/fichiers/${encodeURIComponent(d.rapportPublicationsCommunicationsPath || '')}`;
+                // 1. GÉNÉRATION DES URLS POUR TOUS LES DOCUMENTS (Y COMPRIS LES DEUX NOUVEAUX)
+                const rapportUrl = `/documents/${encodeURIComponent(d.rapportThesePath || '')}?token=${token}`;
+                const plagiatUrl = `/documents/${encodeURIComponent(d.rapportAntiPlagiatPath || '')}?token=${token}`;
+                const pubUrl = `/documents/${encodeURIComponent(d.rapportPublicationsCommunicationsPath || '')}?token=${token}`;
+                const attestationsUrl = `/documents/${encodeURIComponent(d.copiesAttestationsFormationsPath || '')}?token=${token}`;
+                const manuscriteUrl = `/documents/${encodeURIComponent(d.demandeManuscritePath || '')}?token=${token}`;
 
                 container.innerHTML += `
-                    <article class="bg-surface-container-low p-6 rounded-2xl border-l-4 border-primary grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-
-                        <!-- Section Gauche : Infos & Fichiers -->
-                        <div class="lg:col-span-5 space-y-4">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
-                                    <span class="material-symbols-outlined text-primary text-2xl">school</span>
-                                </div>
-                                <div>
-                                    <h3 class="serif-display text-xl font-bold text-white">${d.doctorant.prenom} ${d.doctorant.nom}</h3>
-                                    <p class="text-xs text-outline uppercase tracking-wider font-semibold">Doctorant en cours de validation</p>
-                                </div>
+                <article class="bg-surface-container-low p-6 rounded-2xl border-l-4 border-primary grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    <!-- Section Gauche : Infos & Fichiers -->
+                    <div class="lg:col-span-5 space-y-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
+                                <span class="material-symbols-outlined text-primary text-2xl">school</span>
                             </div>
-
-                            <hr class="border-white/5" />
-
-                            <div class="space-y-2">
-                                <h4 class="text-xs font-black uppercase tracking-widest text-primary mb-2">Pièces jointes requises</h4>
-                                <button onclick="window.open('${rapportUrl}')" class="w-full text-left p-3 rounded-xl border border-white/5 bg-[#041329]/40 hover:bg-[#1c2a41] text-slate-300 hover:text-white transition-all flex items-center gap-3 text-sm">
-                                    <span class="material-symbols-outlined text-primary text-sm">description</span> Rapport de Thèse
-                                </button>
-                                <button onclick="window.open('${plagiatUrl}')" class="w-full text-left p-3 rounded-xl border border-white/5 bg-[#041329]/40 hover:bg-[#1c2a41] text-slate-300 hover:text-white transition-all flex items-center gap-3 text-sm">
-                                    <span class="material-symbols-outlined text-red-400 text-sm">verified_user</span> Rapport Anti-Plagiat
-                                </button>
-                                <button onclick="window.open('${pubUrl}')" class="w-full text-left p-3 rounded-xl border border-white/5 bg-[#041329]/40 hover:bg-[#1c2a41] text-slate-300 hover:text-white transition-all flex items-center gap-3 text-sm">
-                                    <span class="material-symbols-outlined text-emerald-400 text-sm">analytics</span> Liste des publications
-                                </button>
+                            <div>
+                                <h3 class="serif-display text-xl font-bold text-white">${d.doctorant.prenom} ${d.doctorant.nom}</h3>
+                                <p class="text-xs text-outline uppercase tracking-wider font-semibold">Doctorant en cours de validation</p>
                             </div>
                         </div>
 
-                        <!-- Section Droite : Formulaire Jury -->
-                        <div class="lg:col-span-7 bg-[#010e24]/40 p-6 rounded-xl border border-white/5 space-y-4">
-                            <h4 class="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                                <span class="material-symbols-outlined text-sm">gavel</span> Définir la composition du jury
-                            </h4>
+                        <hr class="border-white/5" />
 
-                            <form id="form-jury-${d.id}" onsubmit="soumettreJuryPropose(event, ${d.id})" class="space-y-3">
-                                <input type="text" class="w-full bg-surface-container-low border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none transition-all text-white membre-input"
-                                       placeholder="Ex: Pr. Nom Prénom (Rapporteur - Université de Rabat)" required>
+                        <div class="space-y-2">
+                            <h4 class="text-xs font-black uppercase tracking-widest text-primary mb-2">Pièces jointes requises</h4>
 
-                                <input type="text" class="w-full bg-surface-container-low border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none transition-all text-white membre-input"
-                                       placeholder="Ex: Pr. Nom Prénom (Examinateur - EMSI)" required>
+                            <button onclick="window.open('${rapportUrl}')" class="w-full text-left p-3 rounded-xl border border-white/5 bg-[#041329]/40 hover:bg-[#1c2a41] text-slate-300 hover:text-white transition-all flex items-center gap-3 text-sm">
+                                <span class="material-symbols-outlined text-primary text-sm">description</span> Rapport de Thèse
+                            </button>
 
-                                <input type="text" class="w-full bg-surface-container-low border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none transition-all text-white membre-input"
-                                       placeholder="Ex: Pr. Nom Prénom (Président du Jury)" required>
+                            <button onclick="window.open('${plagiatUrl}')" class="w-full text-left p-3 rounded-xl border border-white/5 bg-[#041329]/40 hover:bg-[#1c2a41] text-slate-300 hover:text-white transition-all flex items-center gap-3 text-sm">
+                                <span class="material-symbols-outlined text-red-400 text-sm">verified_user</span> Rapport Anti-Plagiat
+                            </button>
 
-                                <div class="text-end pt-2">
-                                    <button type="submit" class="px-6 py-3 rounded-xl bg-primary text-on-primary font-bold hover:scale-[1.02] transition-all shadow-lg shadow-primary/10 uppercase text-xs tracking-widest">
-                                        Transmettre le jury
-                                    </button>
-                                </div>
-                            </form>
+                            <button onclick="window.open('${pubUrl}')" class="w-full text-left p-3 rounded-xl border border-white/5 bg-[#041329]/40 hover:bg-[#1c2a41] text-slate-300 hover:text-white transition-all flex items-center gap-3 text-sm">
+                                <span class="material-symbols-outlined text-emerald-400 text-sm">analytics</span> Liste des publications
+                            </button>
+
+                            <!-- 2. AJOUT DES DEUX BOUTONS COMPLÉMENTAIRES ICI -->
+                            <button onclick="window.open('${attestationsUrl}')" class="w-full text-left p-3 rounded-xl border border-white/5 bg-[#041329]/40 hover:bg-[#1c2a41] text-slate-300 hover:text-white transition-all flex items-center gap-3 text-sm">
+                                <span class="material-symbols-outlined text-amber-400 text-sm">workspace_premium</span> Attestations de Formations
+                            </button>
+
+                            <button onclick="window.open('${manuscriteUrl}')" class="w-full text-left p-3 rounded-xl border border-white/5 bg-[#041329]/40 hover:bg-[#1c2a41] text-slate-300 hover:text-white transition-all flex items-center gap-3 text-sm">
+                                <span class="material-symbols-outlined text-cyan-400 text-sm">history_edu</span> Demande Manuscrite
+                            </button>
                         </div>
-                    </article>
-                `;
+                    </div>
+
+                    <!-- Section Droite : Formulaire Jury -->
+                    <div class="lg:col-span-7 bg-[#010e24]/40 p-6 rounded-xl border border-white/5 space-y-4">
+                        <h4 class="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm">gavel</span> Définir la composition du jury
+                        </h4>
+
+                        <form id="form-jury-${d.id}" onsubmit="soumettreJuryPropose(event, ${d.id})" class="space-y-3">
+                            <input type="text" class="w-full bg-surface-container-low border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none transition-all text-white membre-input"
+                                   placeholder="Ex: Pr. Nom Prénom (Rapporteur - Université de Rabat)" required>
+
+                            <input type="text" class="w-full bg-surface-container-low border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none transition-all text-white membre-input"
+                                   placeholder="Ex: Pr. Nom Prénom (Examinateur - EMSI)" required>
+
+                            <input type="text" class="w-full bg-surface-container-low border border-white/10 rounded-xl p-3 text-sm focus:border-primary outline-none transition-all text-white membre-input"
+                                   placeholder="Ex: Pr. Nom Prénom (Président du Jury)" required>
+
+                            <div class="text-end pt-2">
+                                <button type="submit" class="px-6 py-3 rounded-xl bg-primary text-on-primary font-bold hover:scale-[1.02] transition-all shadow-lg shadow-primary/10 uppercase text-xs tracking-widest">
+                                    Transmettre le jury
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </article>
+            `;
             });
         } catch (err) {
             container.innerHTML = '<p class="text-error text-center serif-display py-10">Erreur lors de la récupération des soutenances.</p>';
@@ -230,7 +288,7 @@
         });
 
         if (membresSelectionnes.length === 0) {
-            alert("Veuillez renseigner au moins un membre du jury.");
+            showNotification("Veuillez renseigner au moins un membre du jury.", "error");
             return;
         }
 
@@ -245,15 +303,15 @@
             });
 
             if (response.ok) {
-                alert("La proposition de jury a bien été transmise à l'administration.");
+                showNotification("La proposition de jury a bien été transmise à l'administration.", "success");
                 loadSoutenances();
             } else {
                 const errorMsg = await response.text();
-                alert("Erreur lors de la soumission du jury : " + errorMsg);
+                showNotification("Erreur lors de la soumission du jury : " + errorMsg, "error");
             }
         } catch (error) {
             console.error("Erreur technique :", error);
-            alert("Impossible de joindre le serveur de validation.");
+            showNotification("Impossible de joindre le serveur de validation.", "error");
         }
     }
 
@@ -262,7 +320,6 @@
         window.location.href = '/login';
     }
 
-    // Initialisation synchrone avec le look & feel global
     loadUserInfo();
     loadSoutenances();
 </script>

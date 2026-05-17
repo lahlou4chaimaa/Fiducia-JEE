@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # Service de la base de données PostgreSQL
+  db-postgres:
+    image: postgres:17-alpine
+    container_name: postgres_fiducia
+    restart: always
+    environment:
+      POSTGRES_DB: doctorat_db
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - fiducia-network
+
+  # Service de l'application Spring Boot
+  app-spring:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app_fiducia
+    restart: always
+    ports:
+      - "8080:8080"
+    # Attend que PostgreSQL soit prêt avant de démarrer l'application
+    depends_on:
+      - db-postgres
+    # Injection des variables d'environnement lues depuis le fichier .env
+    environment:
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION_MS=${JWT_EXPIRATION_MS}
+    networks:
+      - fiducia-network
+
+volumes:
+  postgres_data:
+
+networks:
+  fiducia-network:
+    driver: bridge
