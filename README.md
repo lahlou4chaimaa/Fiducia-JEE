@@ -35,7 +35,7 @@ Fiducia-JEE est une application web basée sur Spring Boot permettant la gestion
 
 1.  **Cloner le dépôt :**
     ```bash
-    git clone <votre-url-de-repo>
+    git clone https://github.com/achraal/Fiducia-JEE.git
     cd fiducia-project
     ```
 
@@ -57,9 +57,9 @@ Ce projet a été réalisé en collaboration. Voici la répartition des tâches 
 
 | Membre de l'équipe | Rôle / Tâches accomplies |
 | :--- | :--- |
-| **[Nom de la personne 1]** | *(Exemple : Développement du module de sécurité JWT, conception de la base de données, etc.)* Veuillez détailler ici vos contributions. |
-| **[Nom de la personne 2]** | *(Exemple : Gestion des dossiers d'inscription, intégration Thymeleaf, etc.)* Veuillez détailler ici vos contributions. |
-| **[Nom de la personne 3]** | *(Exemple : Système de gestion des soutenances et upload de fichiers, etc.)* Veuillez détailler ici vos contributions. |
+| **EZ-ZAHRAOUI El-Mehdi** | *(Exemple : Développement du module de sécurité JWT, conception de la base de données, etc.)* Veuillez détailler ici vos contributions. |
+| **AIT LAHCEN Achraf** | *(Exemple : Gestion des dossiers d'inscription, intégration Thymeleaf, etc.)* Veuillez détailler ici vos contributions. |
+| **LAHLOU Chaimaa** | *(Exemple : Système de gestion des soutenances et upload de fichiers, etc.)* Veuillez détailler ici vos contributions. |
 
 > **Note :** *Remplissez le tableau ci-dessus avec les noms des membres de votre équipe (ex: Achraf, Mehdi, Chaimaa) et les détails spécifiques de ce que chacun a développé dans le projet.*
 
