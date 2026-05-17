@@ -1,20 +1,6 @@
 POST http://localhost:8080/api/auth/register
 
 {
-    "nom": "Admin",
-    "prenom": "Système",
-    "email": "admin@emsi.ma",
-    "password": "adminpassword"
-}
-
-{
-    "nom": "Directeur",
-    "prenom": "DT",
-    "email": "directeur@emsi.ma",
-    "password": "directeurpassword"
-}
-
-{
     "nom": "Administratif",
     "prenom": "Personnel",
     "email": "scolarite@emsi.ma",
@@ -152,4 +138,43 @@ PUT http://localhost:8080/api/auth/me/profile
 }
 
 GET http://localhost:8080/api/validation/directeur/mes-dossiers
+
+################################################################
+
+
+POST http://localhost:8080/api/soutenance/soumettre
+
+nbArticlesQ1Q2	Text	2 (si tu mets 1, l'API doit rejeter)
+nbConferences	Text	2
+heuresFormation	Text	200 (si tu mets 199, l'API doit rejeter)
+demandeManuscrite	File	Sélectionne un fichier PDF/PNG
+rapportThese	File	Sélectionne un fichier PDF
+antiPlagiat	File	Sélectionne un fichier PDF
+rapportPublisCom	File	Sélectionne un fichier PDF
+attestationsFormations	File	Sélectionne un fichier PDF
+
+
+GET http://localhost:8080/api/soutenance/directeur/mes-demandes
+
+POST http://localhost:8080/api/soutenance/{id}/proposer-jury
+
+[
+  "Pr. Ahmed Alami (Président)",
+  "Pr. Rachid Benali (Rapporteur)",
+  "Pr. Fatima Nour (Examinatrice)"
+]
+
+
+POST http://localhost:8080/api/soutenance/{id}/autoriser-et-planifier
+
+{
+  "date": "2026-06-15T10:00:00",
+  "heure": "10:00",
+  "lieu": "Salle des Thèses, Bloc G"
+}
+
+
+
+GET http://localhost:8080/api/soutenance/mon-suivi
+
 

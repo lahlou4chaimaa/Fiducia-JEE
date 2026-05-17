@@ -1,17 +1,15 @@
 package com.example.fiducia.controllers;
 
-import com.example.fiducia.entities.Campagne;
-import com.example.fiducia.entities.StatutDossier;
-import com.example.fiducia.repositories.CampagneRepository;
-import com.example.fiducia.repositories.DirecteurTheseRepository;
-import com.example.fiducia.repositories.DossierInscriptionRepository;
-import com.example.fiducia.repositories.UserRepository;
+import com.example.fiducia.entities.*;
+import com.example.fiducia.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model; // Correction de l'import ici
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
+import java.util.Optional;
+import java.security.Principal;
 
 @Controller
 public class ViewController {
@@ -20,6 +18,7 @@ public class ViewController {
     @Autowired private CampagneRepository campagneRepository;
     @Autowired private DirecteurTheseRepository directeurRepository;
     @Autowired private DossierInscriptionRepository dossierRepo;
+    @Autowired private DemandeSoutenanceRepository soutenanceRepo;
 
     @GetMapping("/login")
     public String showLoginPage() {
@@ -51,18 +50,49 @@ public class ViewController {
         model.addAttribute("users", userRepository.findAll());
         model.addAttribute("allDirecteurs", directeurRepository.findAll());
         model.addAttribute("dossiersEnAttente", dossierRepo.findByStatut(StatutDossier.EN_ATTENTE_ADMIN));
+        List<DemandeSoutenance> demandesJury = soutenanceRepo.findByStatut(DemandeSoutenance.StatutSoutenance.JURY_PROPOSE);
+        model.addAttribute("demandesJuryProposes", demandesJury);
         return "admin/dashboard";
     }
+
     @GetMapping("/profile")
     public String profilePage() {
         return "profil"; // correspond à profil.html dans templates
     }
+
     @GetMapping("/candidat/dashboard")
     public String candidatDashboard() {
+        /*Utilisateur user = userRepository.findByEmail(principal.getName()).orElseThrow();
+        if (user instanceof CandidatDoctorant) {
+            Optional<DemandeSoutenance> demandeOpt = soutenanceRepo.findByDoctorant((CandidatDoctorant) user);
+            if (demandeOpt.isPresent()) {
+                DemandeSoutenance d = demandeOpt.get();
+                model.addAttribute("demandeSoutenance", d);
+
+                // Génération du message d'étape personnalisé
+                String message = switch (d.getStatut()) {
+                    case SOUMISE_EN_ATTENTE_JURY -> "Vos prérequis sont validés. Votre dossier est en cours d'examen par votre Directeur de thèse pour la proposition du jury.";
+                    case JURY_PROPOSE -> "Le jury a été proposé par votre directeur. L'administration étudie les rapports pour valider définitivement la date.";
+                    case AUTORISEE_ET_PLANIFIEE -> "Félicitations ! Votre soutenance est officiellement autorisée et planifiée.";
+                    default -> "Statut inconnu.";
+                };
+                model.addAttribute("messageEtape", message);
+            } else {
+                model.addAttribute("demandeSoutenance", null);
+            }
+        }*/
+
         return "candidat/dashboard"; // templates/candidat/dashboard.html
     }
+
     @GetMapping("/directeur/dashboard")
     public String directeurDashboard() {
+        /*Utilisateur user = userRepository.findByEmail(principal.getName()).orElseThrow();
+        if (user instanceof DirecteurThese) {
+            List<DemandeSoutenance> demandes = soutenanceRepo.findByDirecteurAndStatut(
+                    (DirecteurThese) user, DemandeSoutenance.StatutSoutenance.SOUMISE_EN_ATTENTE_JURY);
+            model.addAttribute("demandesSoutenance", demandes);
+        }*/
         return "directeur/dashboard";
     }
 
@@ -80,6 +110,16 @@ public class ViewController {
         model.addAttribute("activeCampagnes", activeCampagnes);
 
         return "candidat/soumission";
+    }
+
+    @GetMapping("/directeur/soutenances")
+    public String directeurSoutenances() {
+        return "directeur/soutenance-directeur";
+    }
+
+    @GetMapping("/candidat/soutenance")
+    public String candidatSoutenances() {
+        return "candidat/soutenance-candidat";
     }
 
     @GetMapping("/")

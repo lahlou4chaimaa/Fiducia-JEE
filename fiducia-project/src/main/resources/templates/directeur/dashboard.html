@@ -53,8 +53,14 @@
     <nav class="flex-1">
         <ul class="space-y-1">
             <li>
-                <a class="flex items-center gap-4 py-3 px-6 border-l-4 border-primary bg-white/5 text-primary font-bold text-sm tracking-wide uppercase" href="#">
-                    <span class="material-symbols-outlined">folder_shared</span> Dossiers
+                <a class="flex items-center gap-4 py-3 px-6 border-l-4 border-primary bg-white/5 text-primary font-bold text-sm tracking-wide uppercase" href="/directeur/dashboard">
+                    <span class="material-symbols-outlined">folder_shared</span> Candidatures
+                </a>
+            </li>
+            <li>
+                <!-- AJOUT : Navigation fluide vers l'interface de proposition des jurys de soutenance -->
+                <a class="flex items-center gap-4 py-3 px-6 border-l-4 border-transparent text-slate-400 hover:bg-white/5 hover:text-white text-sm tracking-wide uppercase transition-all" href="/directeur/soutenances">
+                    <span class="material-symbols-outlined">gavel</span> Jurys Soutenance
                 </a>
             </li>
         </ul>
@@ -128,7 +134,6 @@
 
     if(!token) window.location.href = '/login';
 
-    // Charger le nom de l'utilisateur pour la sidebar (Optionnel si tu as l'API)
     async function loadUserInfo() {
         try {
             const res = await fetch('/api/auth/me/profile', { headers: { 'Authorization': 'Bearer ' + token } });
@@ -136,16 +141,18 @@
                 const me = await res.json();
                 document.getElementById('sidebar-user-name').textContent = me.prenom + ' ' + me.nom;
             }
-        } catch (e) {}
+        } catch (e) {
+            console.error("Erreur profil", e);
+        }
     }
 
     async function loadDossiers() {
+        const container = document.getElementById('dossiers-container');
         try {
             const res = await fetch('/api/validation/directeur/mes-dossiers', {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
             const dossiers = await res.json();
-            const container = document.getElementById('dossiers-container');
             document.getElementById('count-badge').textContent = `${dossiers.length} Dossier(s)`;
 
             container.innerHTML = '';
@@ -161,6 +168,11 @@
 
             dossiers.forEach(d => {
                 const dateModif = new Date(d.dateDerniereModification).toLocaleDateString('fr-FR');
+
+                // Sécurisation des chaînes de chemins de fichiers pour l'injection JS
+                const cvUrl = `/api/soutenance/fichiers/${encodeURIComponent(d.cvPath || '')}`;
+                const lmUrl = `/api/soutenance/fichiers/${encodeURIComponent(d.lettreMotivationPath || '')}`;
+
                 container.innerHTML += `
                     <article class="bg-surface-container-low p-6 rounded-xl relative group transition-all hover:bg-surface-container-high border-l-4 border-primary">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -184,10 +196,10 @@
                                 <span class="material-symbols-outlined text-sm">rate_review</span> Évaluer la candidature
                             </button>
                             <div class="flex gap-2">
-                                <button onclick="window.open('/api/files/${d.cvPath}')" class="p-2 border border-white/10 text-outline rounded-lg hover:text-primary transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-tighter">
+                                <button onclick="window.open('${cvUrl}')" class="p-2 border border-white/10 text-outline rounded-lg hover:text-primary transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-tighter">
                                     <span class="material-symbols-outlined text-sm">description</span> CV
                                 </button>
-                                <button onclick="window.open('/api/files/${d.lettreMotivationPath}')" class="p-2 border border-white/10 text-outline rounded-lg hover:text-primary transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-tighter">
+                                <button onclick="window.open('${lmUrl}')" class="p-2 border border-white/10 text-outline rounded-lg hover:text-primary transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-tighter">
                                     <span class="material-symbols-outlined text-sm">mail</span> Lettre
                                 </button>
                             </div>
@@ -196,7 +208,7 @@
                 `;
             });
         } catch (err) {
-            container.innerHTML = '<p class="text-error text-center serif-display">Erreur de connexion.</p>';
+            container.innerHTML = '<p class="text-error text-center serif-display">Erreur lors de la récupération des dossiers candidates.</p>';
         }
     }
 
@@ -218,12 +230,23 @@
                 headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ valide: favorable, commentaires: comm })
             });
-            if(res.ok) { closeModal(); loadDossiers(); }
-        } catch (err) { alert("Erreur réseau."); }
+            if(res.ok) {
+                closeModal();
+                loadDossiers();
+            } else {
+                alert("Impossible d'enregistrer votre décision.");
+            }
+        } catch (err) {
+            alert("Erreur réseau lors de la validation.");
+        }
     }
 
-    function logout() { localStorage.clear(); window.location.href = '/login'; }
+    function logout() {
+        localStorage.clear();
+        window.location.href = '/login';
+    }
 
+    // Initialisation
     loadUserInfo();
     loadDossiers();
 </script>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="dark" lang="fr" xmlns:th="http://www.thymeleaf.org">
+<html class="dark" lang="fr">
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -57,7 +57,7 @@
                 <span class="material-symbols-outlined text-[#e9c176] text-sm">person</span>
             </div>
             <div class="flex flex-col">
-                <span class="text-xs font-bold">Mon Profil</span>
+                <span id="sidebar-user-name-display" class="text-xs font-bold">Mon Profil</span>
                 <span class="text-[10px] text-slate-500 uppercase tracking-tighter">Candidat</span>
             </div>
             <span class="material-symbols-outlined text-slate-600 ml-auto text-sm group-hover:translate-x-1 transition-transform">chevron_right</span>
@@ -65,7 +65,7 @@
     </div>
 
     <div class="px-6 pt-4">
-        <button onclick="localStorage.clear(); window.location.href='/login'" class="w-full flex items-center gap-3 text-red-400 hover:text-red-300 transition-all text-sm font-bold">
+        <button onclick="logout()" class="w-full flex items-center gap-3 text-red-400 hover:text-red-300 transition-all text-sm font-bold">
             <span class="material-symbols-outlined">logout</span>
             <span>Déconnexion</span>
         </button>
@@ -98,17 +98,16 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-2">
                         <label class="text-sm font-medium px-1 text-slate-300">Session d'inscription</label>
-                        <select name="campagneId" required
+                        <select name="campagneId" id="campagneSelect" required
                                 class="w-full bg-[#041329] border-white/10 rounded-xl focus:ring-[#e9c176] focus:border-[#e9c176] text-sm text-white h-[46px]">
-                            <option value="" disabled selected>-- Choisir une session --</option>
-                            <option th:each="c : ${activeCampagnes}" th:value="${c.id}" th:text="${c.libelle}"></option>
+                            <option value="" disabled selected>Chargement des sessions...</option>
                         </select>
                     </div>
                     <div class="space-y-2">
                         <label class="text-sm font-medium px-1 text-slate-300">Directeur de thèse</label>
                         <select name="directeurId" id="directeurSelect" required
                                 class="w-full bg-[#041329] border-white/10 rounded-xl focus:ring-[#e9c176] focus:border-[#e9c176] text-sm text-white h-[46px]">
-                            <option value="">Chargement...</option>
+                            <option value="" disabled selected>Chargement des professeurs...</option>
                         </select>
                     </div>
                 </div>
@@ -164,20 +163,30 @@
     </div>
 </main>
 
-<script th:inline="javascript">
+<script>
     const token = localStorage.getItem('token');
     if (!token) window.location.href = '/login';
 
     async function init() {
-        // 1. Vérifier si un dossier existe déjà
+        await loadIdentity();
         const hasDossier = await checkExistingDossier();
 
         if (!hasDossier) {
-            // 2. Si pas de dossier, on affiche le formulaire
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('formContainer').style.display = 'block';
-            await loadDirecteurs();
+            // Chargement parallèle des référentiels dynamiques
+            await Promise.all([loadDirecteurs(), loadCampagnes()]);
         }
+    }
+
+    async function loadIdentity() {
+        try {
+            const res = await fetch('/api/auth/me/profile', { headers: { 'Authorization': 'Bearer ' + token } });
+            if(res.ok) {
+                const me = await res.json();
+                document.getElementById('sidebar-user-name-display').textContent = me.prenom + ' ' + me.nom;
+            }
+        } catch(e) { console.error("Erreur profil:", e); }
     }
 
     async function checkExistingDossier() {
@@ -186,10 +195,14 @@
                 headers: { 'Authorization': 'Bearer ' + token }
             });
             if (res.ok) {
-                const dossier = await res.json();
-                if (dossier && dossier.id) {
-                    window.location.href = '/candidat/dashboard';
-                    return true;
+                const text = await res.text();
+                // Gestion sécurisée si le backend répond par une chaîne vide ou un texte descriptif
+                if (text && !text.includes("Aucun dossier")) {
+                    const dossier = JSON.parse(text);
+                    if (dossier && dossier.id) {
+                        window.location.href = '/candidat/dashboard';
+                        return true;
+                    }
                 }
             }
             return false;
@@ -214,7 +227,27 @@
                 select.appendChild(opt);
             });
         } catch (err) {
-            select.innerHTML = '<option>Erreur de chargement</option>';
+            select.innerHTML = '<option disabled>Erreur de chargement</option>';
+        }
+    }
+
+    async function loadCampagnes() {
+        const select = document.getElementById('campagneSelect');
+        try {
+            // CORRECTION: Interrogation de l'API pour récupérer les sessions actives en arrière-plan
+            const res = await fetch('/api/candidat/campagnes-actives', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const campagnes = await res.json();
+            select.innerHTML = '<option value="" disabled selected>-- Choisir une session --</option>';
+            campagnes.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.libelle;
+                select.appendChild(opt);
+            });
+        } catch (err) {
+            select.innerHTML = '<option disabled>Erreur de chargement des sessions</option>';
         }
     }
 
@@ -245,8 +278,14 @@
         } catch (err) {
             alert("Erreur serveur");
             btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-outlined">cloud_upload</span> Réessayer';
         }
     };
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = '/login';
+    }
 
     // Lancement au chargement
     init();

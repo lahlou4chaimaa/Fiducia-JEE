@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html class="dark" lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Espace Soutenance - Fiducia</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#e9c176',
+                        'primary-dark': '#412d00',
+                        'on-surface': '#d6e3ff'
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght=400;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <style>
+        body {
+            background-color: #041329;
+            color: #d6e3ff;
+            font-family: 'Manrope', sans-serif;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+        }
+        .sidebar-item-active { border-left: 4px solid #e9c176; background: rgba(255,255,255,0.05); color: #e9c176; font-weight: bold; }
+        .glass-card { background: rgba(17, 32, 54, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
+
+        input[type="file"]::file-selector-button {
+            background-color: rgba(233, 193, 118, 0.1);
+            color: #e9c176;
+            border: 1px solid rgba(233, 193, 118, 0.2);
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 12px;
+            transition: all 0.2s;
+        }
+        input[type="file"]::file-selector-button:hover {
+            background-color: rgba(233, 193, 118, 0.2);
+        }
+        .custom-loader { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 350px; }
+    </style>
+</head>
+<body class="flex min-h-screen">
+
+<!-- BARRE LATÉRALE (SIDEBAR) ACCORDÉE -->
+<aside class="fixed left-0 top-0 h-screen w-64 bg-[#010e24] border-r border-white/5 flex flex-col py-8 z-50">
+    <div class="px-6 mb-10">
+        <h1 class="text-2xl font-bold text-primary italic font-serif">Fiducia</h1>
+        <p class="text-[10px] text-slate-500 uppercase tracking-widest">Espace Candidat</p>
+    </div>
+
+    <nav class="flex-1 space-y-1">
+        <a href="/candidat/dashboard" id="nav-dashboard" class="w-full flex items-center gap-3 px-6 py-4 text-sm text-slate-400 hover:bg-white/5 hover:text-white transition-all group">
+            <span class="material-symbols-outlined group-hover:text-primary">dashboard</span>
+            <span>Mon Suivi</span>
+        </a>
+        <a href="/candidat/soumission" id="nav-soumission" class="w-full flex items-center gap-3 px-6 py-4 text-sm text-slate-400 hover:bg-white/5 hover:text-white transition-all group">
+            <span class="material-symbols-outlined group-hover:text-primary">add_circle</span>
+            <span>Inscription Thèse</span>
+        </a>
+        <a href="/candidat/soutenances" id="nav-soutenance" class="sidebar-item-active w-full flex items-center gap-3 px-6 py-4 text-sm transition-all group">
+            <span class="material-symbols-outlined">school</span>
+            <span>Espace Soutenance</span>
+        </a>
+    </nav>
+
+    <div class="px-4 pt-4 border-t border-white/5 space-y-4">
+        <div class="flex items-center gap-2">
+            <a href="/profile" class="flex-1 flex items-center gap-3 p-2 rounded-xl bg-[#112036] border border-white/5 hover:bg-[#2c3951] transition-all group">
+                <div class="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
+                    <span class="material-symbols-outlined text-primary text-sm">person</span>
+                </div>
+                <div class="flex flex-col min-w-0">
+                    <span id="sidebar-user-name-display" class="text-[11px] font-bold truncate text-on-surface">Mon Profil</span>
+                    <span class="text-[9px] text-slate-500 uppercase tracking-tighter">Candidat</span>
+                </div>
+            </a>
+            <button onclick="logout()" class="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all" title="Déconnexion">
+                <span class="material-symbols-outlined text-sm">logout</span>
+            </button>
+        </div>
+    </div>
+</aside>
+
+<!-- CONTENU PRINCIPAL -->
+<main class="ml-64 flex-1 p-8 md:p-12">
+    <header class="mb-12 flex justify-between items-end">
+        <div>
+            <h2 class="text-3xl font-bold">Processus de <span class="text-primary italic">Soutenance</span></h2>
+            <p id="soutenance-message-etape" class="text-slate-400 mt-1 italic">Vérification de l'état de votre parcours doctoral...</p>
+        </div>
+        <div id="soutenance-status-badge" class="hidden px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/5 border border-white/10">
+            Aucune demande
+        </div>
+    </header>
+
+    <!-- ÉCRAN DE CHARGEMENT INITIAL -->
+    <div id="loadingState" class="custom-loader">
+        <span class="material-symbols-outlined animate-spin text-4xl text-primary">sync</span>
+        <p class="mt-4 text-slate-500 italic text-sm">Récupération de vos données sécurisées...</p>
+    </div>
+
+    <!-- ZONE DE NOTIFICATION D'ERREUR INTERNE -->
+    <div id="error-container" class="hidden mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm flex items-center gap-3">
+        <span class="material-symbols-outlined">error</span>
+        <span id="error-text"></span>
+    </div>
+
+    <!-- CAS 1 : FORMULAIRE DE CRÉATION DE DEMANDE -->
+    <div id="formContainer" class="hidden glass-card rounded-3xl overflow-hidden max-w-5xl shadow-2xl">
+        <form id="soutenanceForm" onsubmit="soumettreDossier(event)" class="p-8 space-y-8">
+
+            <div class="space-y-6">
+                <h3 class="text-primary text-[10px] font-black uppercase tracking-[0.2em] border-b border-white/5 pb-2 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">analytics</span> 1. Prérequis Académiques Obligatoires
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-xs font-medium text-slate-300">Articles Journaux (Q1/Q2)</label>
+                        <input type="number" id="nbArticlesQ1Q2" min="0" required class="w-full bg-[#041329] border-white/10 rounded-xl focus:ring-primary focus:border-primary text-sm text-white py-2.5">
+                        <p class="text-[10px] text-slate-500">Minimum requis : 2 indexés</p>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-medium text-slate-300">Nombre de Conférences</label>
+                        <input type="number" id="nbConferences" min="0" required class="w-full bg-[#041329] border-white/10 rounded-xl focus:ring-primary focus:border-primary text-sm text-white py-2.5">
+                        <p class="text-[10px] text-slate-500">Minimum requis : 2 internationales</p>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-medium text-slate-300">Heures de Formation Complétées</label>
+                        <input type="number" id="heuresFormation" min="0" required class="w-full bg-[#041329] border-white/10 rounded-xl focus:ring-primary focus:border-primary text-sm text-white py-2.5">
+                        <p class="text-[10px] text-slate-500">Minimum requis : 200 heures</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <h3 class="text-primary text-[10px] font-black uppercase tracking-[0.2em] border-b border-white/5 pb-2 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">folder_shared</span> 2. Dépôt des Pièces Justificatives (PDF uniquement)
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-2">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">Demande manuscrite au chef</label>
+                        <input type="file" id="demandeManuscrite" accept=".pdf" required class="w-full text-xs text-slate-400">
+                    </div>
+                    <div class="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-2">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">Rapport de thèse final</label>
+                        <input type="file" id="rapportThese" accept=".pdf" required class="w-full text-xs text-slate-400">
+                    </div>
+                    <div class="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-2">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">Rapport anti-plagiat (Certifié)</label>
+                        <input type="file" id="antiPlagiat" accept=".pdf" required class="w-full text-xs text-slate-400">
+                    </div>
+                    <div class="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-2">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">Rapport des publis & comms</label>
+                        <input type="file" id="rapportPublisCom" accept=".pdf" required class="w-full text-xs text-slate-400">
+                    </div>
+                    <div class="md:col-span-2 p-4 bg-white/5 rounded-2xl border border-white/5 space-y-2">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">Copies de toutes les attestations de formation</label>
+                        <input type="file" id="attestationsFormations" accept=".pdf" required class="w-full text-xs text-slate-400">
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4">
+                <button type="submit" id="submitBtn" class="w-full py-4 bg-primary text-primary-dark font-black rounded-xl hover:scale-[1.01] active:scale-95 transition-all shadow-xl flex items-center justify-center gap-3 uppercase tracking-[0.15em] text-xs">
+                    <span class="material-symbols-outlined">assignment_turned_in</span>
+                    Valider mes prérequis et soumettre le dossier
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- CAS 2 : AFFICHAGE DU SUIVI DE LA DEMANDE EXISTANTE -->
+    <div id="suiviContainer" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 space-y-8">
+            <div class="glass-card p-8 rounded-2xl">
+                <label class="text-[10px] font-black text-primary uppercase tracking-[0.2em] block mb-4">Indicateurs déclarés</label>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-white/5 p-4 rounded-xl border border-white/5 text-center">
+                        <p class="text-2xl font-black text-white" id="view-articles">0</p>
+                        <p class="text-[10px] uppercase text-slate-400 font-bold mt-1">Articles Q1/Q2</p>
+                    </div>
+                    <div class="bg-white/5 p-4 rounded-xl border border-white/5 text-center">
+                        <p class="text-2xl font-black text-white" id="view-conferences">0</p>
+                        <p class="text-[10px] uppercase text-slate-400 font-bold mt-1">Conférences</p>
+                    </div>
+                    <div class="bg-white/5 p-4 rounded-xl border border-white/5 text-center">
+                        <p class="text-2xl font-black text-white" id="view-heures">0h</p>
+                        <p class="text-[10px] uppercase text-slate-400 font-bold mt-1">Formations</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BLOC PLANIFICATION (Harmonisé avec la bordure latérale gauche "border-primary") -->
+            <div id="planificationCard" class="hidden glass-card p-8 rounded-2xl border-l-4 border-primary bg-white/5">
+                <h4 class="text-primary font-bold text-lg flex items-center gap-2 mb-4">
+                    <span class="material-symbols-outlined">calendar_month</span> Convocation à votre Soutenance
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                    <div>
+                        <p class="text-[10px] text-slate-500 uppercase font-black">Date arrêtée</p>
+                        <p id="view-date" class="font-bold text-on-surface text-base mt-1">-</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-500 uppercase font-black">Heure de passage</p>
+                        <p id="view-heure" class="font-bold text-on-surface text-base mt-1">-</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-500 uppercase font-black">Salle / Lieu</p>
+                        <p id="view-lieu" class="font-bold text-on-surface text-base mt-1">-</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-8">
+            <div class="glass-card p-6 rounded-2xl">
+                <label class="text-[10px] font-black text-primary uppercase tracking-[0.2em] block mb-4">Statut des Livrables</label>
+                <div class="space-y-3 text-xs">
+                    <div class="flex items-center justify-between p-3 bg-[#041329] rounded-xl border border-white/5">
+                        <span class="text-slate-300">Rapport de Thèse & Indexations</span>
+                        <span class="material-symbols-outlined text-green-400 text-sm">check_circle</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-[#041329] rounded-xl border border-white/5">
+                        <span class="text-slate-300">Analyse de Plagiat</span>
+                        <span class="material-symbols-outlined text-green-400 text-sm">check_circle</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/login';
+
+    async function initPage() {
+        await chargerIdentite();
+        await verifierEtatSoutenance();
+    }
+
+    async function chargerIdentite() {
+        try {
+            const res = await fetch('/api/auth/me/profile', { headers: { 'Authorization': 'Bearer ' + token } });
+            if (res.ok) {
+                const me = await res.json();
+                document.getElementById('sidebar-user-name-display').textContent = me.prenom + ' ' + me.nom;
+            }
+        } catch (e) { console.error("Profil invisible", e); }
+    }
+
+    async function verifierEtatSoutenance() {
+        try {
+            const res = await fetch('/api/soutenance/mon-suivi', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            document.getElementById('loadingState').style.display = 'none';
+
+            if (res.status === 404 || res.status === 204) {
+                document.getElementById('formContainer').classList.remove('hidden');
+                return;
+            }
+
+            if (res.ok) {
+                const data = await res.json();
+
+                if (!data || !data.id) {
+                    document.getElementById('formContainer').classList.remove('hidden');
+                    return;
+                }
+
+                document.getElementById('suiviContainer').classList.remove('hidden');
+
+                document.getElementById('view-articles').textContent = data.nbArticlesQ1Q2 || 0;
+                document.getElementById('view-conferences').textContent = data.nbConferences || 0;
+                document.getElementById('view-heures').textContent = (data.heuresFormationCompletees || 0) + "h";
+
+                gererMessageEtapeEtBadge(data.statut);
+
+                if (data.statut === 'AUTORISEE_ET_PLANIFIEE') {
+                    document.getElementById('planificationCard').classList.remove('hidden');
+                    if(data.dateSoutenance) {
+                        const dateObj = new Date(data.dateSoutenance);
+                        document.getElementById('view-date').textContent = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+                    }
+                    document.getElementById('view-heure').textContent = data.heure || "Non définie";
+                    document.getElementById('view-lieu').textContent = data.lieu || "Non spécifié";
+                }
+            }
+        } catch (err) {
+            console.error("Erreur check statut soutenance:", err);
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('formContainer').classList.remove('hidden');
+        }
+    }
+
+    function gererMessageEtapeEtBadge(statut) {
+        const badge = document.getElementById('soutenance-status-badge');
+        const msg = document.getElementById('soutenance-message-etape');
+        badge.classList.remove('hidden');
+        badge.textContent = statut.replace(/_/g, ' ');
+
+        // Configuration sémantique globale utilisant la variable Tailwind "primary"
+        if (statut === 'SOUMISE_EN_ATTENTE_JURY') {
+            badge.className = "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary border border-primary/20";
+            msg.textContent = "Vos prérequis sont enregistrés. Votre dossier est en attente de proposition du jury par votre directeur.";
+        } else if (statut === 'JURY_PROPOSE') {
+            badge.className = "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/5 text-slate-300 border border-white/10";
+            msg.textContent = "Le jury a été proposé par votre encadrant. L'administration procède à la vérification finale des rapports.";
+        } else if (statut === 'AUTORISEE_ET_PLANIFIEE') {
+            badge.className = "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+            msg.textContent = "Félicitations ! Votre soutenance est officiellement autorisée. Retrouvez vos détails de convocation ci-dessous.";
+        }
+    }
+
+    async function soumettreDossier(event) {
+        event.preventDefault();
+
+        const errContainer = document.getElementById('error-container');
+        const errText = document.getElementById('error-text');
+        const btn = document.getElementById('submitBtn');
+
+        errContainer.classList.add('hidden');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="animate-spin material-symbols-outlined">sync</span> Traitement des volumes PDF...';
+
+        const formData = new FormData();
+        formData.append('nbArticlesQ1Q2', document.getElementById('nbArticlesQ1Q2').value);
+        formData.append('nbConferences', document.getElementById('nbConferences').value);
+        formData.append('heuresFormation', document.getElementById('heuresFormation').value);
+
+        formData.append('demandeManuscrite', document.getElementById('demandeManuscrite').files[0]);
+        formData.append('rapportThese', document.getElementById('rapportThese').files[0]);
+        formData.append('antiPlagiat', document.getElementById('antiPlagiat').files[0]);
+        formData.append('rapportPublisCom', document.getElementById('rapportPublisCom').files[0]);
+        formData.append('attestationsFormations', document.getElementById('attestationsFormations').files[0]);
+
+        try {
+            const response = await fetch('/api/soutenance/soumettre', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token },
+                body: formData
+            });
+
+            if (response.ok) {
+                btn.className = "w-full py-4 bg-emerald-500 text-white font-black rounded-xl transition-all";
+                btn.innerHTML = "Dossier enregistré avec succès !";
+                setTimeout(() => window.location.reload(), 1200);
+            } else {
+                const errorMsg = await response.text();
+                errText.textContent = errorMsg || "Une erreur est survenue lors de la validation de vos critères d'éligibilité.";
+                errContainer.classList.remove('hidden');
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-outlined">assignment_turned_in</span> Soumettre le dossier';
+            }
+        } catch (error) {
+            alert("Rupture de flux avec le serveur API.");
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-outlined">assignment_turned_in</span> Réessayer';
+        }
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = '/login';
+    }
+
+    initPage();
+</script>
+</body>
+</html>

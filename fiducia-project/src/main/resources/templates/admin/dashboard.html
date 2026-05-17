@@ -66,6 +66,11 @@
             <span class="material-symbols-outlined group-hover:text-primary">fact_check</span>
             <span>Validations Finales</span>
         </button>
+        <!-- AJOUT : Onglet de Planification des Soutenances -->
+        <button onclick="showTab('soutenances')" id="btn-soutenances" class="w-full flex items-center gap-3 px-6 py-3 text-slate-400 hover:bg-white/5 transition-all text-sm font-medium uppercase tracking-wide group">
+            <span class="material-symbols-outlined group-hover:text-primary">school</span>
+            <span>Soutenances</span>
+        </button>
         <button onclick="showTab('campagnes')" id="btn-campagnes" class="w-full flex items-center gap-3 px-6 py-3 text-slate-400 hover:bg-white/5 transition-all text-sm font-medium uppercase tracking-wide group">
             <span class="material-symbols-outlined group-hover:text-primary">event_available</span>
             <span>Campagnes</span>
@@ -112,11 +117,70 @@
         <div th:replace="~{admin/validations :: content}"></div>
     </section>
 
+    <!-- AJOUT : Section Table de Planification des Soutenances -->
+    <section id="tab-soutenances" class="hidden-tab">
+        <header class="mb-12">
+            <h1 class="serif-title text-5xl font-bold text-on-surface mb-2 tracking-tight">Planification <span class="text-primary italic">des</span> Soutenances</h1>
+            <p class="text-on-surface-variant text-lg">Autorisation finale et fixation des dates pour les jurys proposés.</p>
+        </header>
+
+        <div th:if="${#lists.isEmpty(demandesJuryProposes)}" class="p-6 bg-surface-container-low border border-white/5 rounded-xl text-slate-400">
+            Aucun jury en attente de planification administrative pour le moment.
+        </div>
+
+        <div th:if="${!#lists.isEmpty(demandesJuryProposes)}" class="overflow-x-auto bg-surface-container-low rounded-xl border border-white/5 shadow-2xl">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                <tr class="border-b border-white/10 bg-white/5 text-xs uppercase text-slate-400 font-mono tracking-wider">
+                    <th class="py-4 px-6">Doctorant</th>
+                    <th class="py-4 px-6">Directeur</th>
+                    <th class="py-4 px-6">Jury Proposé</th>
+                    <th class="py-4 px-6 text-center">Planification / Action</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5 text-sm">
+                <tr th:each="demande : ${demandesJuryProposes}" class="hover:bg-white/[0.02] transition-colors">
+                    <td class="py-4 px-6 font-bold text-on-surface" th:text="${demande.doctorant.nom} + ' ' + ${demande.doctorant.prenom}"></td>
+                    <td class="py-4 px-6 text-slate-300" th:text="${demande.directeur.nom} + ' ' + ${demande.directeur.prenom}"></td>
+                    <td class="py-4 px-6">
+                        <ul class="list-disc pl-4 space-y-1 text-xs text-slate-400">
+                            <li th:each="membre : ${demande.membresJuryProposes}" th:text="${membre}"></li>
+                        </ul>
+                    </td>
+                    <td class="py-4 px-6 w-[340px]">
+                        <!-- Formulaire JS lié au RestController -->
+                        <form th:id="'form-planif-' + ${demande.id}" th:onsubmit="'planifierSoutenance(event, ' + ${demande.id} + ')'" class="space-y-3 bg-surface-container p-4 rounded-lg border border-white/5">
+                            <div>
+                                <label class="block text-[11px] font-mono text-slate-400 uppercase mb-1">Date du calendrier</label>
+                                <input type="datetime-local" class="w-full bg-background border border-white/10 rounded-md text-xs text-white p-1.5 focus:ring-1 focus:ring-primary date-in" required>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-mono text-slate-400 uppercase mb-1">Heure exact</label>
+                                    <input type="text" class="w-full bg-background border border-white/10 rounded-md text-xs text-white p-1.5 focus:ring-1 focus:ring-primary heure-in" placeholder="ex: 10:00" required>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-mono text-slate-400 uppercase mb-1">Salle / Amphi</label>
+                                    <input type="text" class="w-full bg-background border border-white/10 rounded-md text-xs text-white p-1.5 focus:ring-1 focus:ring-primary lieu-in" placeholder="ex: Amphi 2" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full py-2 bg-primary text-on-primary text-xs font-bold uppercase tracking-wider rounded hover:opacity-90 transition-opacity mt-2">
+                                Autoriser & Planifier
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
     <section id="tab-campagnes" class="hidden-tab">
         <div th:replace="~{admin/campagnes :: content}"></div>
     </section>
 
     <section id="tab-registration" class="hidden-tab">
+        <!-- Reste inchangé -->
         <div class="max-w-2xl bg-surface-container-low p-8 rounded-xl border border-white/5 shadow-2xl mx-auto">
             <div class="flex gap-4 mb-8">
                 <button onclick="toggleRegType('DIRECTEUR')" id="type-directeur" class="flex-1 py-2 rounded-lg border border-primary bg-primary/10 text-primary font-bold text-xs uppercase tracking-widest transition-all">Directeur</button>
@@ -167,15 +231,45 @@
 </div>
 
 <script>
-    let currentStaffType = 'DIRECTEUR'; // Valeur par défaut
+    let currentStaffType = 'DIRECTEUR';
     const token = localStorage.getItem('token');
 
     if (!token) window.location.href = '/login';
 
-    // FONCTION UNIQUE POUR CHANGER DE TYPE
-    function toggleRegType(type) {
-        currentStaffType = type; // CRITIQUE : met à jour la variable pour le onsubmit
+    // AJOUT : Nouvelle fonction Fetch pour envoyer le DTO de Planification avec la sécurité Token
+    async function planifierSoutenance(event, demandeId) {
+        event.preventDefault();
 
+        const dateVal = document.querySelector(`#form-planif-${demandeId} .date-in`).value;
+        const heureVal = document.querySelector(`#form-planif-${demandeId} .heure-in`).value;
+        const lieuVal = document.querySelector(`#form-planif-${demandeId} .lieu-in`).value;
+
+        const payload = {
+            date: dateVal + ":00", // Format requis pour LocalDateTime parsing
+            heure: heureVal,
+            lieu: lieuVal
+        };
+
+        const res = await fetch(`/api/soutenance/${demandeId}/autoriser-et-planifier`, {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+            alert("Soutenance officiellement autorisée et planifiée !");
+            window.location.reload();
+        } else {
+            const errMsg = await res.text();
+            alert("Erreur de planification : " + errMsg);
+        }
+    }
+
+    function toggleRegType(type) {
+        currentStaffType = type;
         const fD = document.getElementById('fields-directeur');
         const fA = document.getElementById('fields-admin');
         const btnD = document.getElementById('type-directeur');
@@ -184,13 +278,11 @@
         if(type === 'DIRECTEUR') {
             fD.classList.remove('hidden-tab');
             fA.classList.add('hidden-tab');
-            // Style bouton actif
             btnD.className = "flex-1 py-2 rounded-lg border border-primary bg-primary/10 text-primary font-bold text-xs uppercase tracking-widest transition-all";
             btnA.className = "flex-1 py-2 rounded-lg border border-white/10 text-slate-500 font-bold text-xs uppercase tracking-widest transition-all";
         } else {
             fA.classList.remove('hidden-tab');
             fD.classList.add('hidden-tab');
-            // Style bouton actif
             btnA.className = "flex-1 py-2 rounded-lg border border-primary bg-primary/10 text-primary font-bold text-xs uppercase tracking-widest transition-all";
             btnD.className = "flex-1 py-2 rounded-lg border border-white/10 text-slate-500 font-bold text-xs uppercase tracking-widest transition-all";
         }
@@ -198,7 +290,6 @@
 
     document.getElementById('staffForm').onsubmit = async (e) => {
         e.preventDefault();
-
         const payload = {
             nom: document.getElementById('staffNom').value,
             prenom: document.getElementById('staffPrenom').value,
@@ -208,7 +299,6 @@
         };
 
         let targetUrl = '';
-
         if (currentStaffType === 'DIRECTEUR') {
             payload.grade = document.getElementById('staffGrade').value;
             payload.laboratoire = document.getElementById('staffLabo').value;
@@ -223,10 +313,7 @@
 
         const res = await fetch(targetUrl, {
             method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + token,
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
 
@@ -239,8 +326,9 @@
         }
     };
 
+    // MISE À JOUR : Gestion du basculement d'onglets pour inclure 'soutenances'
     function showTab(tabName) {
-        ['users', 'campagnes', 'registration', 'validations'].forEach(t => {
+        ['users', 'campagnes', 'registration', 'validations', 'soutenances'].forEach(t => {
             const section = document.getElementById(`tab-${t}`);
             const btn = document.getElementById(`btn-${t}`);
             if(section) section.classList.add('hidden-tab');
@@ -250,7 +338,6 @@
         document.getElementById(`btn-${tabName}`).className = "w-full flex items-center gap-3 px-6 py-3 border-l-4 border-primary bg-white/5 text-primary font-bold text-sm uppercase tracking-wide transition-all";
     }
 
-    // Garder les autres fonctions (handleRoleUpdate, filterUsers, logout, etc.)
     async function handleRoleUpdate(userId, action) {
         const roleName = document.getElementById(`select-role-${userId}`).value;
         const res = await fetch(`/api/admin/users/${userId}/${action}-role`, {
